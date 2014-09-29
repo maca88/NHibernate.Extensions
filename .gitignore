@@ -1,0 +1,7 @@
+Source/NHibernate.Extensions.Tests/bin/*
+Source/NHibernate.Extensions.Tests/obj/*
+Source/NHibernate.Extensions/bin/*
+*.suo
+Source/NHibernate.Extensions/obj/*
+Source/packages/*
+*.user
