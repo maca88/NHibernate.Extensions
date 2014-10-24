@@ -20,6 +20,12 @@ namespace NHibernate.Extensions.Tests
             return int.Parse(match.Groups[1].Value);
         }
 
+        protected void ClearStatistics()
+        {
+            var factory = (ISessionFactoryImplementor)NHConfig.SessionFactory;
+            factory.Statistics.Clear();
+        }
+
         protected int GetQueriesCount()
         {
             var factory = (ISessionFactoryImplementor)NHConfig.SessionFactory;
@@ -37,6 +43,7 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(petra.CurrentOwnedVehicles.Count, 1);
             Assert.AreEqual(petra.DrivingLicence.Code, "3");
             Assert.AreEqual(petra.IdentityCard.Code, "4");
+            Assert.AreEqual(petra.CreatedBy.UserName, "System");
             Assert.AreEqual(petra.MarriedWith, petra.BestFriend.BestFriend);
             Assert.AreEqual(petra.OwnedHouses.Count, 1);
             Assert.AreEqual(petra.PreviouslyOwnedVehicles.Count, 2);
@@ -57,10 +64,11 @@ namespace NHibernate.Extensions.Tests
 
         protected void FillData()
         {
-            var ana = new EQBPerson { Age = 23, Name = "Ana" };
-            var rok = new EQBPerson { Age = 24, Name = "Rok" };
-            var simon = new EQBPerson { Age = 25, Name = "Simon" };
-            var petra = new EQBPerson { Age = 22, Name = "Petra" };
+            var system = new EQBUser { UserName = "System" };
+            var ana = new EQBPerson { Age = 23, Name = "Ana", CreatedBy = system };
+            var rok = new EQBPerson { Age = 24, Name = "Rok", CreatedBy = system };
+            var simon = new EQBPerson { Age = 25, Name = "Simon", CreatedBy = system };
+            var petra = new EQBPerson { Age = 22, Name = "Petra", CreatedBy = system };
 
             //Setting best friends
             petra.BestFriend = ana;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FluentNHibernate.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Linq;
@@ -143,6 +144,37 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void test_include_with_interface()
+        {
+            EQBPerson petra;
+            ClearStatistics();
+            /*Without parameter*/
+            using (var session = NHConfig.OpenSession())
+            {
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.CreatedBy)
+                    .Single(o => o.Name == "Petra");
+                Assert.AreEqual(1, GetQueryCount(0));
+            }
+            Assert.AreEqual(petra.CreatedBy.UserName, "System");
+        }
+
+        [TestMethod]
+        public void test_include_with_collection()
+        {
+            EQBPerson petra;
+            ClearStatistics();
+            /*Without parameter*/
+            using (var session = NHConfig.OpenSession())
+            {
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Single(o => o.Name == "Petra");
+                Assert.AreEqual(1, GetQueryCount(0));
+            }
+        }
+
+        [TestMethod]
         public void get_single_result_without_skip_or_take()
         {
             EQBPerson petra;
@@ -172,6 +204,10 @@ namespace NHibernate.Extensions.Tests
                        .Where(o => o.Name == "Petra")
                        .ToFuture();
                 session.Query<EQBPerson>()
+                       .Fetch(o => o.CreatedBy)
+                       .Where(o => o.Name == "Petra")
+                       .ToFuture();
+                session.Query<EQBPerson>()
                        .Fetch(o => o.IdentityCard)
                        .Where(o => o.Name == "Petra")
                        .ToFuture();
@@ -188,7 +224,7 @@ namespace NHibernate.Extensions.Tests
                        .Where(o => o.Name == "Petra")
                        .ToFutureValue().Value;
 
-                Assert.AreEqual(8, GetQueryCount(0));
+                Assert.AreEqual(9, GetQueryCount(0));
             }
             ValidateGetEntityResult(petra);
 
@@ -202,6 +238,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -221,6 +258,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -243,6 +281,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -262,6 +301,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -284,6 +324,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -303,6 +344,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -325,6 +367,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -344,6 +387,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -366,6 +410,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -385,6 +430,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)
@@ -406,6 +452,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
                     .Include(o => o.OwnedHouses)

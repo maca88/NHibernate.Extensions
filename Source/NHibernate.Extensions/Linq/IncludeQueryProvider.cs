@@ -205,11 +205,26 @@ namespace NHibernate.Extensions.Linq
                 meta = Session.Factory.GetClassMetadata(assocType.GetAssociatedEntityName(Session.Factory));
 
                 MethodInfo fetchMethod;
-                var relatedType = meta.GetMappedClass(EntityMode.Poco);
+
+                //we have to get the actual property type instead of the mapped class type
+                var relatedType = currentType.GetProperty(propName).PropertyType;
+                if (propType.IsCollectionType)
+                {
+                    relatedType = relatedType.IsGenericType 
+                        ? relatedType.GetGenericArguments()[0] 
+                        : meta.GetMappedClass(EntityMode.Poco);
+                }
+
                 var convertToType = propType.IsCollectionType
                     ? typeof (IEnumerable<>).MakeGenericType(relatedType)
                     : null;
+
                 var expression = CreatePropertyExpression(currentType, propName, convertToType);
+                //var relatedType = meta.GetMappedClass(EntityMode.Poco); 
+                //var convertToType = propType.IsCollectionType
+                //    ? typeof (IEnumerable<>).MakeGenericType(relatedType)
+                //    : null;
+                //var expression = CreatePropertyExpression(currentType, propName, convertToType);
                 //No fetch before
                 if (query is NhQueryable<TRoot>)
                 {

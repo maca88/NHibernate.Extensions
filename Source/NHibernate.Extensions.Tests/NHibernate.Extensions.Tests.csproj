@@ -47,7 +47,7 @@
     </Reference>
     <Reference Include="Iesi.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Iesi.Collections.4.0.1.4000\lib\net40\Iesi.Collections.dll</HintPath>
+      <HintPath>..\packages\Iesi.Collections.4.0.0.4000\lib\net40\Iesi.Collections.dll</HintPath>
     </Reference>
     <Reference Include="NHibernate, Version=4.0.0.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -76,6 +76,8 @@
   <ItemGroup>
     <Compile Include="BaseIncludeTest.cs" />
     <Compile Include="CascadeConvention.cs" />
+    <Compile Include="Entities\EQBUser.cs" />
+    <Compile Include="Entities\IUser.cs" />
     <Compile Include="EntityQueryBuilderTests.cs" />
     <Compile Include="Entities\EQBDrivingLicence.cs" />
     <Compile Include="Entities\EQBHouse.cs" />

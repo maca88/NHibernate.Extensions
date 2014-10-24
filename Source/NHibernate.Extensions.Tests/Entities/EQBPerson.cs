@@ -38,6 +38,8 @@ namespace NHibernate.Extensions.Tests.Entities
 
         public virtual EQBPerson BestFriend { get; set; }
 
+        public virtual IUser CreatedBy { get; set; }
+
         #endregion
 
         #region OneToOne
@@ -59,6 +61,7 @@ namespace NHibernate.Extensions.Tests.Entities
             mapping.HasMany(o => o.CurrentOwnedVehicles).KeyColumn("CurrentOwnerId");
             mapping.HasManyToMany(o => o.PreviouslyOwnedVehicles);
             mapping.HasManyToMany(o => o.OwnedHouses);
+            mapping.References(o => o.CreatedBy).Class<EQBUser>();
         }
     }
 }
