@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Linq.Expressions;
-using NHibernate.Extensions.Expressions;
 using NHibernate.Util;
 
 namespace NHibernate.Extensions.Helpers
 {
     public static class ExpressionHelper
     {
-        public static string GetExpressionPath(Expression expression)
-        {
-            return GetExpressionInfo(expression, new ExpressionInfo());
-        }
-
-        public static string GetExpressionInfo(Expression expression, ExpressionInfo expressionInfo)
+        public static string GetFullPath(Expression expression)
         {
             string fullPath;
             var memberExpression = expression as MemberExpression;
@@ -26,31 +20,21 @@ namespace NHibernate.Extensions.Helpers
                         // it's a Nullable<T>, so ignore any .Value
                         if (memberExpression.Member.Name == "Value")
                         {
-                            fullPath = GetExpressionInfo(memberExpression.Expression, expressionInfo);
-                            expressionInfo.FullPath = fullPath;
+                            fullPath = GetFullPath(memberExpression.Expression);
                             return fullPath;
                         }
                     }
-                    fullPath = GetExpressionInfo(memberExpression.Expression, expressionInfo) + "." + memberExpression.Member.Name;
-                    expressionInfo.FullPath = fullPath;
-                    expressionInfo.AddSubExpression(memberExpression);
+                    fullPath = GetFullPath(memberExpression.Expression) + "." + memberExpression.Member.Name;
                     return fullPath;
-                    //return GetExpressionInfo(memberExpression.Expression) + "." + memberExpression.Member.Name;
                 }
                 if (IsConversion(memberExpression.Expression.NodeType))
                 {
-                    fullPath = (GetExpressionInfo(memberExpression.Expression, expressionInfo) + "." + memberExpression.Member.Name).TrimStart('.'); ;
-                    expressionInfo.FullPath = fullPath;
-                    expressionInfo.AddSubExpression(memberExpression);
+                    fullPath = (GetFullPath(memberExpression.Expression) + "." + memberExpression.Member.Name).TrimStart('.'); ;
                     return fullPath;
-                    //return (GetExpressionInfo(memberExpression.Expression) + "." + memberExpression.Member.Name).TrimStart('.');
                 }
 
                 fullPath = memberExpression.Member.Name;
-                expressionInfo.FullPath = fullPath;
-                expressionInfo.AddSubExpression(memberExpression);
                 return fullPath;
-                //return memberExpression.Member.Name;
             }
 
             var unaryExpression = expression as UnaryExpression;
@@ -58,10 +42,8 @@ namespace NHibernate.Extensions.Helpers
             {
                 if (!IsConversion(unaryExpression.NodeType))
                     throw new Exception("Cannot interpret member from " + expression);
-                fullPath = GetExpressionInfo(unaryExpression.Operand, expressionInfo);
-                expressionInfo.FullPath = fullPath;
+                fullPath = GetFullPath(unaryExpression.Operand);
                 return fullPath;
-                //return GetExpressionInfo(unaryExpression.Operand);
             }
 
             var methodCallExpression = expression as MethodCallExpression;
@@ -73,18 +55,14 @@ namespace NHibernate.Extensions.Helpers
                 */
                 if (methodCallExpression.Method.Name == "get_Item")
                 {
-                    fullPath = GetExpressionInfo(methodCallExpression.Object, expressionInfo);
-                    expressionInfo.FullPath = fullPath;
+                    fullPath = GetFullPath(methodCallExpression.Object);
                     return fullPath;
-                    //return GetExpressionInfo(methodCallExpression.Object);
                 }
 
                 if (methodCallExpression.Method.Name == "First")
                 {
-                    fullPath = GetExpressionInfo(methodCallExpression.Arguments[0], expressionInfo);
-                    expressionInfo.FullPath = fullPath;
+                    fullPath = GetFullPath(methodCallExpression.Arguments[0]);
                     return fullPath;
-                    //return GetExpressionInfo(methodCallExpression.Arguments[0]);
                 }
 
                 throw new Exception("Unrecognised method call in expression " + methodCallExpression);
@@ -109,7 +87,7 @@ namespace NHibernate.Extensions.Helpers
         {
             if (expression.NodeType == ExpressionType.MemberAccess)
             {
-                return (GetExpressionInfo(expression, sessionFactoryInfo) + ".class");
+                return (GetFullPath(expression, sessionFactoryInfo) + ".class");
             }
             return "class";
         }*/

@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NHibernate.Extensions;
 using NHibernate.Extensions.Tests.Entities;
 
-namespace BAF.Tests.DataAccess
+namespace NHibernate.Extensions.Tests
 {
     [TestClass]
     public class QueryRelationTreeTests
@@ -17,7 +12,7 @@ namespace BAF.Tests.DataAccess
         [TestMethod]
         public void Test1()
         {
-            var tree = new QueryRelationTree<EQBPerson>();
+            var tree = new QueryRelationTree();
             Expression<Func<EQBPerson, object>> A = person => person.BestFriend;
             Expression<Func<EQBPerson, object>> AB = person => person.BestFriend.IdentityCard;
             Expression<Func<EQBPerson, object>> AA = person => person.BestFriend.BestFriend;
@@ -45,7 +40,7 @@ namespace BAF.Tests.DataAccess
         [TestMethod]
         public void Test2()
         {
-            var tree = new QueryRelationTree<EQBPerson>();
+            var tree = new QueryRelationTree();
             Expression<Func<EQBPerson, object>> AB = person => person.BestFriend.IdentityCard;
             Expression<Func<EQBPerson, object>> AAAA = person => person.BestFriend.BestFriend.BestFriend.BestFriend;
             Expression<Func<EQBPerson, object>> CD = person => person.CurrentOwnedVehicles.First().Wheels;

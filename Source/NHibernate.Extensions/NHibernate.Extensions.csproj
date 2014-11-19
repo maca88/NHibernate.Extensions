@@ -51,9 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DynamicLinq\Dynamic.cs" />
-    <Compile Include="Expressions\ExpressionInfo.cs" />
-    <Compile Include="Expressions\SubExpressionInfo.cs" />
     <Compile Include="Helpers\ExpressionHelper.cs" />
+    <Compile Include="Helpers\TypeHelper.cs" />
     <Compile Include="Linq\IncludeRewriterVisitor.cs" />
     <Compile Include="Linq\LinqExtensions.cs" />
     <Compile Include="Linq\Lock\LockExpressionNode.cs" />

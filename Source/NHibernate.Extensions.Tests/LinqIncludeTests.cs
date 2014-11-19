@@ -6,6 +6,7 @@ using FluentNHibernate.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Linq;
+using NHibernate.Util;
 using T4FluentNH.Tests;
 
 namespace NHibernate.Extensions.Tests
@@ -154,6 +155,24 @@ namespace NHibernate.Extensions.Tests
                 petra = session.Query<EQBPerson>()
                     .Include(o => o.CreatedBy)
                     .Single(o => o.Name == "Petra");
+                Assert.AreEqual(1, GetQueryCount(0));
+            }
+            Assert.AreEqual(petra.CreatedBy.UserName, "System");
+        }
+
+        [TestMethod]
+        public void test_cast_to_base_type()
+        {
+            IPerson petra;
+            ClearStatistics();
+            /*Without parameter*/
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBPerson>() as IQueryable<IPerson>;
+                petra = query
+                    .Include("CreatedBy")
+                    .Where(o => o.Name == "Petra")
+                    .First();
                 Assert.AreEqual(1, GetQueryCount(0));
             }
             Assert.AreEqual(petra.CreatedBy.UserName, "System");

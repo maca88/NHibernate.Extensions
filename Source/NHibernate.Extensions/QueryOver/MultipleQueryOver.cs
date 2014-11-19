@@ -38,7 +38,7 @@ namespace NHibernate.Extensions
         private void BuildWithoutSubQuery()
         {
             var criteria = (CriteriaImpl)MainQuery.UnderlyingCriteria;
-            var tree = new QueryRelationTree<TRoot>();
+            var tree = new QueryRelationTree();
             foreach (var pathExpr in Includes)
             {
                 tree.AddNode(pathExpr);
@@ -82,7 +82,7 @@ namespace NHibernate.Extensions
             var projectionList = new List<IProjection>();
             projectionList.Add(ExpressionProcessor.FindMemberProjection(expr.Body).AsProjection());
             mainCloned.UnderlyingCriteria.SetProjection(projectionList.ToArray());
-            var tree = new QueryRelationTree<TRoot>();
+            var tree = new QueryRelationTree();
             foreach (var pathExpr in Includes)
             {
                 tree.AddNode(pathExpr);

@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace NHibernate.Extensions
 {
-    public class QueryRelationNode<T>
+    public class QueryRelationNode
     {
         public QueryRelationNode()
         {
-            Children = new Dictionary<string, QueryRelationNode<T>>();
+            Children = new Dictionary<string, QueryRelationNode>();
         }
 
         public string FullPath
@@ -16,7 +16,7 @@ namespace NHibernate.Extensions
             get { return GetFullPath(this); }
         }
 
-        public string GetFullPath(QueryRelationNode<T> node)
+        public string GetFullPath(QueryRelationNode node)
         {
             if (node.Parent == null) return "";
             var fPath = GetFullPath(node.Parent);
@@ -27,9 +27,9 @@ namespace NHibernate.Extensions
 
         public bool IsLeaf { get { return Children.Count == 0; } }
 
-        public QueryRelationNode<T> Parent { get; set; }
+        public QueryRelationNode Parent { get; set; }
 
-        public Dictionary<string, QueryRelationNode<T>> Children { get; private set; }
+        public Dictionary<string, QueryRelationNode> Children { get; private set; }
 
         public void Add(string fullPath)
         {
@@ -38,12 +38,10 @@ namespace NHibernate.Extensions
             var key = Children.Keys.FirstOrDefault(o => o == path);
             if (key == null)
             {
-                Children.Add(path, new QueryRelationNode<T> { Path = path, Parent= this });
+                Children.Add(path, new QueryRelationNode { Path = path, Parent= this });
             }
             if (paths.Length > 1)
                 Children[path].Add(string.Join(".", paths.Skip(1)));
         }
-
-        
     }
 }

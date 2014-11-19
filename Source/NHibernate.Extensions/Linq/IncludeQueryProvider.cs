@@ -1,27 +1,35 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using NHibernate.Engine;
+using NHibernate.Extensions.Helpers;
 using NHibernate.Linq;
 using NHibernate.Type;
+using TypeHelper = NHibernate.Extensions.Helpers.TypeHelper;
 
 namespace NHibernate.Extensions.Linq
 {
     public class IncludeQueryProvider : DefaultQueryProvider
     {
-        protected static MethodInfo FetchMethod;
-        protected static MethodInfo FetchManyMethod;
-        protected static MethodInfo ThenFetchMethod;
-        protected static MethodInfo ThenFetchManyMethod;
-        protected static MethodInfo EvaluateIndependentSubtreesMethod;
-        protected static MethodInfo SelectMethod;
-        protected static MethodInfo WhereMethod;
-        protected static MethodInfo ContainsMethod;
+        protected static readonly MethodInfo CreateQueryMethodDefinition;
+        protected static readonly MethodInfo FetchMethod;
+        protected static readonly MethodInfo FetchManyMethod;
+        protected static readonly MethodInfo ThenFetchMethod;
+        protected static readonly MethodInfo ThenFetchManyMethod;
+        protected static readonly MethodInfo EvaluateIndependentSubtreesMethod;
+        protected static readonly MethodInfo SelectMethod;
+        protected static readonly MethodInfo WhereMethod;
+        protected static readonly MethodInfo ContainsMethod;
+        protected static readonly MethodInfo ToFutureMethod;
+        protected static readonly MethodInfo ToFutureValueMethod;
 
         static IncludeQueryProvider()
         {
+            CreateQueryMethodDefinition =
+                ReflectionHelper.GetMethodDefinition((IncludeQueryProvider p) => p.CreateQuery<object>(null));
             FetchMethod = typeof (EagerFetchingExtensionMethods).GetMethod("Fetch",
                 BindingFlags.Public | BindingFlags.Static);
             FetchManyMethod = typeof(EagerFetchingExtensionMethods).GetMethod("FetchMany",
@@ -33,19 +41,18 @@ namespace NHibernate.Extensions.Linq
             EvaluateIndependentSubtreesMethod = typeof (ISession).Assembly.GetType(
                 "NHibernate.Linq.Visitors.NhPartialEvaluatingExpressionTreeVisitor")
                 .GetMethod("EvaluateIndependentSubtrees");
+
+            ToFutureMethod = typeof (LinqExtensionMethods).GetMethods().First(o => o.Name == "ToFuture");
+            ToFutureValueMethod = typeof(LinqExtensionMethods).GetMethods().First(o => o.Name == "ToFutureValue" && o.GetParameters().Length == 1);
             SelectMethod = typeof(Queryable).GetMethods().First(o => o.Name == "Select");
             WhereMethod = typeof(Queryable).GetMethods().First(o => o.Name == "Where");
             ContainsMethod = typeof(Queryable).GetMethods().First(o => o.Name == "Contains");
         }
 
-        public IncludeQueryProvider(ISessionImplementor session) : base(session)
-        {
-        }
-
         protected static T CreateNhFetchRequest<T>(MethodInfo currentFetchMethod, IQueryable query, System.Type originating, System.Type related, LambdaExpression expression)
         {
             var callExpression = Expression.Call(currentFetchMethod, query.Expression, expression);
-            return (T)Activator.CreateInstance(typeof (NhFetchRequest<,>).MakeGenericType(originating, related), query.Provider,
+            return (T)Activator.CreateInstance(typeof(NhFetchRequest<,>).MakeGenericType(originating, related), query.Provider,
                 callExpression);
         }
 
@@ -57,23 +64,26 @@ namespace NHibernate.Extensions.Linq
             var converted = Expression.Convert(body, convertToType);
             return Expression.Lambda(converted, p);
         }
-    }
 
-    public class IncludeQueryProvider<TRoot> : IncludeQueryProvider
-    {
-        private static readonly MethodInfo CreateQueryMethodDefinition = ReflectionHelper.GetMethodDefinition((IncludeQueryProvider<TRoot> p) => p.CreateQuery<object>(null));
-        public NhQueryable<TRoot> MainQuery;
-        public readonly List<Expression<Func<TRoot, object>>> Includes = new List<Expression<Func<TRoot, object>>>();
+        
 
-        public IncludeQueryProvider(NhQueryable<TRoot> mainQuery, ISessionImplementor session)
-            : base(session)
+
+
+
+        protected System.Type Type;
+        public readonly List<string> IncludePaths = new List<string>();
+        public IQueryable MainQuery;
+
+
+        public IncludeQueryProvider(System.Type type, IQueryable mainQuery, ISessionImplementor session) : base(session)
         {
+            Type = type;
             MainQuery = mainQuery;
         }
 
-        public IncludeQueryProvider<TRoot> Include(Expression<Func<TRoot, object>> include)
+        public IncludeQueryProvider Include(string path)
         {
-            Includes.Add(include);
+            IncludePaths.Add(path);
             return this;
         }
 
@@ -86,9 +96,11 @@ namespace NHibernate.Extensions.Linq
         public override IQueryable<T> CreateQuery<T>(Expression expression)
         {
             var newQuery = new NhQueryable<T>(this, expression);
-            var mainQuery = newQuery as NhQueryable<TRoot>;
-            if (mainQuery != null) //TODO: disallow Select and other methods that returns other types
-                MainQuery = mainQuery;
+            var mainQuery = newQuery as IQueryable;
+            if (!typeof(T).IsAssignableFrom(Type)) //Select and other methods that returns other types
+                throw new NotSupportedException("IncludeQueryProvider does not support mixing types");
+            Type = typeof (T); //Possbile typecast to a base type
+            MainQuery = mainQuery;
             return newQuery;
         }
 
@@ -96,9 +108,11 @@ namespace NHibernate.Extensions.Linq
         {
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
-            var nhQueryable = new NhQueryable<TRoot>(new DefaultQueryProvider(Session), expression);
+            var nhQueryable = (IQueryable)Activator.CreateInstance(typeof (NhQueryable<>).MakeGenericType(Type),
+                new DefaultQueryProvider(Session), expression);
+                //new NhQueryable<TRoot>(new DefaultQueryProvider(Session), expression);
             return resultVisitor.SkipTake
-                ? ExecuteWithSubquery(nhQueryable, resultVisitor) 
+                ? ExecuteWithSubquery(nhQueryable, resultVisitor)
                 : ExecuteWithoutSubQuery(nhQueryable, resultVisitor);
         }
 
@@ -107,45 +121,46 @@ namespace NHibernate.Extensions.Linq
             return Execute(expression);
         }
 
-        private object ExecuteWithSubquery(IQueryable<TRoot> query, IncludeRewriterVisitor visitor)
+        private object ExecuteWithSubquery(IQueryable query, IncludeRewriterVisitor visitor)
         {
-            var type = typeof (TRoot);
-            var pe = Expression.Parameter(type);
+            var pe = Expression.Parameter(Type);
             var contains = Expression.Call(null,
-                ContainsMethod.MakeGenericMethod(type),
+                ContainsMethod.MakeGenericMethod(Type),
                 new Expression[]
                 {
                     Expression.Constant(query),
                     pe
                 });
             var where = Expression.Call(null,
-                WhereMethod.MakeGenericMethod(type),
+                WhereMethod.MakeGenericMethod(Type),
                 new[]
                 {
                     new SkipTakeVisitor().RemoveSkipAndTake(query.Expression),
                     Expression.Lambda(contains, pe)
                 });
-            query = (IQueryable<TRoot>) CreateQueryMethodDefinition.MakeGenericMethod(type)
-                .Invoke(query.Provider, new object[] {where});
+            query = (IQueryable)CreateQueryMethodDefinition.MakeGenericMethod(Type)
+                .Invoke(query.Provider, new object[] { where });
 
 
             return ExecuteQueryTree(query, visitor);
         }
 
-        private object ExecuteWithoutSubQuery(NhQueryable<TRoot> query, IncludeRewriterVisitor visitor)
+        private object ExecuteWithoutSubQuery(IQueryable query, IncludeRewriterVisitor visitor)
         {
             return ExecuteQueryTree(query, visitor);
         }
 
-        private object ExecuteQueryTree(IQueryable<TRoot> query, IncludeRewriterVisitor visitor)
+        private object ExecuteQueryTree(IQueryable query, IncludeRewriterVisitor visitor)
         {
-            var tree = new QueryRelationTree<TRoot>();
-            IEnumerable<TRoot> result = null;
-            IFutureValue<TRoot> futureVal = null;
-            foreach (var pathExpr in Includes)
+            var tree = new QueryRelationTree();
+            object result = null;
+            object futureVal = null;
+            foreach (var path in IncludePaths)
             {
-                tree.AddNode(pathExpr);
+                tree.AddNode(path);
             }
+
+            
 
             var queries = tree.DeepFirstSearch().Select(pair => FetchFromPath(query, pair.Value.Last())).ToList();
 
@@ -153,11 +168,11 @@ namespace NHibernate.Extensions.Linq
             foreach (var q in queries)
             {
                 if (i == 0 && visitor.SingleResult && visitor.FutureValue)
-                    futureVal = q.ToFutureValue();
+                    futureVal = ToFutureValueMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFutureValue();
                 else if (i == 0)
-                    result = q.ToFuture();
+                    result = ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] { q }); //q.ToFuture();
                 else
-                    q.ToFuture();
+                    ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] { q }); //q.ToFuture();
                 i++;
             }
             if (futureVal != null)
@@ -168,12 +183,12 @@ namespace NHibernate.Extensions.Linq
             return result;
         }
 
-        private static TRoot GetValue(IEnumerable<TRoot> items, string methodName)
+        private object GetValue(object items, string methodName)
         {
-            var methodInfo = typeof(Enumerable).GetMethods().First(o => o.Name == methodName && o.GetParameters().Length == 1).MakeGenericMethod(typeof(TRoot));
+            var methodInfo = typeof(Enumerable).GetMethods().First(o => o.Name == methodName && o.GetParameters().Length == 1).MakeGenericMethod(Type);
             try
             {
-                return (TRoot) methodInfo.Invoke(null, new object[] {items});
+                return methodInfo.Invoke(null, new [] { items });
             }
             catch (TargetInvocationException e)
             {
@@ -181,11 +196,19 @@ namespace NHibernate.Extensions.Linq
             }
         }
 
-        private IQueryable<TRoot> FetchFromPath(IQueryable<TRoot> query, string path)
+        private IQueryable FetchFromPath(IQueryable query, string path)
         {
-            var type = typeof (TRoot);
-            var currentType = type;
-            var meta = Session.Factory.GetClassMetadata(type);
+            var currentType = Type;
+            var metas = Session.Factory.GetAllClassMetadata()
+                .Select(o => o.Value)
+                .Where(o => Type.IsAssignableFrom(o.GetMappedClass(EntityMode.Poco)))
+                .ToList();
+            if (!metas.Any())
+                throw new HibernateException(string.Format("Metadata for type '{0}' was not found", Type));
+            if(metas.Count > 1)
+                throw new HibernateException(string.Format("There are more than one metadata for type '{0}'", Type));
+
+            var meta = metas.First();
             var paths = path.Split('.');
 
             foreach (var propName in paths)
@@ -210,13 +233,13 @@ namespace NHibernate.Extensions.Linq
                 var relatedType = currentType.GetProperty(propName).PropertyType;
                 if (propType.IsCollectionType)
                 {
-                    relatedType = relatedType.IsGenericType 
-                        ? relatedType.GetGenericArguments()[0] 
+                    relatedType = relatedType.IsGenericType
+                        ? relatedType.GetGenericArguments()[0]
                         : meta.GetMappedClass(EntityMode.Poco);
                 }
 
                 var convertToType = propType.IsCollectionType
-                    ? typeof (IEnumerable<>).MakeGenericType(relatedType)
+                    ? typeof(IEnumerable<>).MakeGenericType(relatedType)
                     : null;
 
                 var expression = CreatePropertyExpression(currentType, propName, convertToType);
@@ -226,24 +249,25 @@ namespace NHibernate.Extensions.Linq
                 //    : null;
                 //var expression = CreatePropertyExpression(currentType, propName, convertToType);
                 //No fetch before
-                if (query is NhQueryable<TRoot>)
+                if (TypeHelper.IsSubclassOfRawGeneric(typeof(NhQueryable<>), query.GetType()))
                 {
-                    fetchMethod = propType.IsCollectionType 
-                        ? FetchManyMethod.MakeGenericMethod(new[] {type, relatedType})
-                        : FetchMethod.MakeGenericMethod(new[] {type, relatedType});
+                    fetchMethod = propType.IsCollectionType
+                        ? FetchManyMethod.MakeGenericMethod(new[] { Type, relatedType })
+                        : FetchMethod.MakeGenericMethod(new[] { Type, relatedType });
                 }
                 else
                 {
                     fetchMethod = propType.IsCollectionType
-                        ? ThenFetchManyMethod.MakeGenericMethod(new[] { type, currentType, relatedType })
-                        : ThenFetchMethod.MakeGenericMethod(new[] { type, currentType, relatedType });
+                        ? ThenFetchManyMethod.MakeGenericMethod(new[] { Type, currentType, relatedType })
+                        : ThenFetchMethod.MakeGenericMethod(new[] { Type, currentType, relatedType });
                 }
 
-                query = CreateNhFetchRequest<IQueryable<TRoot>>(fetchMethod, query, type, relatedType, expression);
+                query = CreateNhFetchRequest<IQueryable>(fetchMethod, query, Type, relatedType, expression);
                 currentType = relatedType;
             }
             return query;
         }
 
     }
+
 }

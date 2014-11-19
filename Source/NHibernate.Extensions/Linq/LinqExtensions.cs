@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using NHibernate.Engine;
 using NHibernate.Extensions;
+using NHibernate.Extensions.Helpers;
 using NHibernate.Extensions.Linq;
 using NHibernate.Extensions.Lock;
 using NHibernate.Linq.Visitors;
@@ -41,27 +42,43 @@ namespace NHibernate.Linq
             return new NhQueryable<T>(query.Provider, callExpression);
         }
 
-        public static IQueryable<T> Include<T>(this IQueryable<T> query, Expression<Func<T, object>> include) where T: class
+        public static IQueryable<T> Include<T>(this IQueryable<T> query, Expression<Func<T, object>> include)
         {
-            var nhQuery = query as NhQueryable<T>;
-            if(nhQuery == null)
+            var path = ExpressionHelper.GetFullPath(include.Body);
+            Include(query, path);
+            return query;
+        }
+
+        public static IQueryable<T> Include<T>(this IQueryable<T> query, string path)
+        {
+            Include((IQueryable)query, path);
+            return query;
+        }
+
+        public static IQueryable Include(this IQueryable query, string path)
+        {
+            var queryType = query.GetType();
+            if (!TypeHelper.IsSubclassOfRawGeneric(typeof(NhQueryable<>), queryType))
                 throw new Exception("Include function is supported only for Nhibernate queries");
 
-            var providerField = typeof(QueryableBase<>).MakeGenericType(typeof(T))
+            var itemType = queryType.GetGenericArguments()[0];
+
+            var providerField = typeof(QueryableBase<>).MakeGenericType(itemType)
                 .GetField("_queryProvider", BindingFlags.NonPublic | BindingFlags.Instance);
             if(providerField == null)
                 throw new NullReferenceException("providerField");
             var provider = providerField.GetValue(query) as IQueryProvider;
-            var nhProvider = provider as IncludeQueryProvider<T>;
+            var nhProvider = provider as IncludeQueryProvider;
             if (nhProvider == null)
             {
-                var session = SessionPropertyInfo.GetValue(provider, null) as ISessionImplementor; 
-                nhProvider = new IncludeQueryProvider<T>(nhQuery, session);
-                providerField.SetValue(nhQuery, nhProvider);
+                var session = SessionPropertyInfo.GetValue(provider, null) as ISessionImplementor;
+                nhProvider = new IncludeQueryProvider(itemType, query, session);
+                providerField.SetValue(query, nhProvider);
             }
-            nhProvider.Include(include);
-            return nhQuery;
+            nhProvider.Include(path);
+            return query;
         }
+
 
     }
 

@@ -106,13 +106,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NHibernate.Extensions\NHibernate.Extensions.csproj">
-      <Project>{0f4d0e27-acaa-448a-a1cf-ca79ff9b42d2}</Project>
-      <Name>NHibernate.Extensions</Name>
-    </ProjectReference>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+    <ProjectReference Include="..\NHibernate.Extensions\NHibernate.Extensions.csproj">
+      <Project>{ece5fa2c-a6b7-4577-ad3c-dd13098fce37}</Project>
+      <Name>NHibernate.Extensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

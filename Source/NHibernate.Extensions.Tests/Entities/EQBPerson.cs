@@ -4,7 +4,14 @@ using FluentNHibernate.Automapping.Alterations;
 
 namespace NHibernate.Extensions.Tests.Entities
 {
-    public partial class EQBPerson : Entity
+    public interface IPerson
+    {
+        string Name { get; set; }
+
+        IUser CreatedBy { get; set; }
+    }
+
+    public partial class EQBPerson : Entity, IPerson
     {
         public EQBPerson()
         {

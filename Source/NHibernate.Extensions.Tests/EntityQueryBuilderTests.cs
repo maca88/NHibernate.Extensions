@@ -150,7 +150,8 @@ namespace NHibernate.Extensions.Tests
                 //               .FutureValue().Value;
                 transaction.Commit();
 
-                //Assert.AreEqual(9, GetQueryCount(0));
+                Assert.AreEqual(8, GetQueryCount(0));
+                ClearStatistics();
             }
             ValidateGetEntityResult(petra);   
 
@@ -169,7 +170,8 @@ namespace NHibernate.Extensions.Tests
                                   .Where(o => o.Name == "Petra")
                                   .SingleOrDefault();
 
-                //Assert.AreEqual(1, GetQueriesCount());
+                //Assert.AreEqual(8, GetQueryCount(0));
+                //ClearStatistics();
             }
             ValidateGetEntityResult(petra);
 
@@ -188,7 +190,8 @@ namespace NHibernate.Extensions.Tests
                                   .Where(o => o.Name == "Petra")
                                   .SingleOrDefault();
 
-                Assert.AreEqual(1, GetQueriesCount());
+                //Assert.AreEqual(8, GetQueryCount(0));
+                //ClearStatistics();
             }
             ValidateGetEntityResult(petra);
         }
@@ -200,6 +203,12 @@ namespace NHibernate.Extensions.Tests
             var factory = (ISessionFactoryImplementor)NHConfig.SessionFactory;
             var match = new Regex("([0-9]+).*").Match(factory.Statistics.Queries[index]);
             return int.Parse(match.Groups[1].Value);
+        }
+
+        private void ClearStatistics()
+        {
+            var factory = (ISessionFactoryImplementor)NHConfig.SessionFactory;
+            factory.Statistics.Clear();
         }
 
         private int GetQueriesCount()

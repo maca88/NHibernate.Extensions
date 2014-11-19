@@ -2,27 +2,28 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using NHibernate.Extensions.Expressions;
 using NHibernate.Extensions.Helpers;
 
 namespace NHibernate.Extensions
 {
-    public class QueryRelationTree<T>
+    public class QueryRelationTree
     {
         public QueryRelationTree()
         {
-            Node = new QueryRelationNode<T>();
-            ExpressionInfo = new ExpressionInfo();
+            Node = new QueryRelationNode();
         }
 
-        private QueryRelationNode<T> Node { get; set; }
+        private QueryRelationNode Node { get; set; }
 
-        public ExpressionInfo ExpressionInfo { get; private set; }
-
-        public void AddNode(Expression<Func<T, object>> expression)
+        public void AddNode<T>(Expression<Func<T, object>> expression)
         {
-            ExpressionHelper.GetExpressionInfo(expression.Body, ExpressionInfo);
-            Node.Add(ExpressionInfo.FullPath);
+            var fullPath = ExpressionHelper.GetFullPath(expression.Body);
+            Node.Add(fullPath);
+        }
+
+        public void AddNode(string path)
+        {
+            Node.Add(path);
         }
 
         public Dictionary<int, List<string>> DeepFirstSearch()
@@ -33,7 +34,7 @@ namespace NHibernate.Extensions
             return result;
         }
 
-        private static void DeepFisrstSearchRecursive(Dictionary<string, QueryRelationNode<T>> children, Dictionary<int, List<string>> result, ref int idx)
+        private static void DeepFisrstSearchRecursive(Dictionary<string, QueryRelationNode> children, Dictionary<int, List<string>> result, ref int idx)
         {
             foreach (var child in children)
             {
