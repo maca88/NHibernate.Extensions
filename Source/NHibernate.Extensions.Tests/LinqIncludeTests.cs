@@ -84,6 +84,30 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void using_count_method()
+        {
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles);
+
+                var total = query.Count();
+                Assert.AreEqual(4, total);
+
+                var people = query.ToList();
+                Assert.AreEqual(4, people.Count);
+
+            }
+        }
+
+        [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void using_single_method_for_retriving_a_person_that_dont_exists()
         {
@@ -176,6 +200,24 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(1, GetQueryCount(0));
             }
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
+        }
+
+        [TestMethod]
+        public void test_cast_to_base_type_relation()
+        {
+            IPerson petra;
+            ClearStatistics();
+            /*Without parameter*/
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBPerson>()
+                    .Where(o => o.Name == "Petra") as IQueryable;
+                petra = query
+                    .Include("CurrentOwnedVehicles")
+                    .ToList<IPerson>().First();
+                Assert.AreEqual(1, GetQueryCount(0));
+            }
+            Assert.AreEqual(petra.CurrentOwnedVehicles.Any(), true);
         }
 
         [TestMethod]

@@ -9,6 +9,8 @@ namespace NHibernate.Extensions.Tests.Entities
         string Name { get; set; }
 
         IUser CreatedBy { get; set; }
+
+        ISet<EQBVehicle> CurrentOwnedVehicles { get; set; }
     }
 
     public partial class EQBPerson : Entity, IPerson

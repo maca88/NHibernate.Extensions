@@ -7,6 +7,7 @@ using System.Reflection;
 using NHibernate.Engine;
 using NHibernate.Extensions.Helpers;
 using NHibernate.Linq;
+using NHibernate.Persister.Collection;
 using NHibernate.Type;
 using TypeHelper = NHibernate.Extensions.Helpers.TypeHelper;
 
@@ -108,9 +109,14 @@ namespace NHibernate.Extensions.Linq
         {
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
+
+            if (resultVisitor.Count)
+                return base.Execute(expression);
+
             var nhQueryable = (IQueryable)Activator.CreateInstance(typeof (NhQueryable<>).MakeGenericType(Type),
                 new DefaultQueryProvider(Session), expression);
                 //new NhQueryable<TRoot>(new DefaultQueryProvider(Session), expression);
+
             return resultVisitor.SkipTake
                 ? ExecuteWithSubquery(nhQueryable, resultVisitor)
                 : ExecuteWithoutSubQuery(nhQueryable, resultVisitor);
@@ -160,8 +166,6 @@ namespace NHibernate.Extensions.Linq
                 tree.AddNode(path);
             }
 
-            
-
             var queries = tree.DeepFirstSearch().Select(pair => FetchFromPath(query, pair.Value.Last())).ToList();
 
             var i = 0;
@@ -209,6 +213,7 @@ namespace NHibernate.Extensions.Linq
                 throw new HibernateException(string.Format("There are more than one metadata for type '{0}'", Type));
 
             var meta = metas.First();
+            var currentTypeImpl = meta.GetMappedClass(EntityMode.Poco);
             var paths = path.Split('.');
 
             foreach (var propName in paths)
@@ -229,13 +234,13 @@ namespace NHibernate.Extensions.Linq
 
                 MethodInfo fetchMethod;
 
-                //we have to get the actual property type instead of the mapped class type
-                var relatedType = currentType.GetProperty(propName).PropertyType;
-                if (propType.IsCollectionType)
+                //Try to get the actual property type (so we can skip casting as relinq will throw an exception)
+                var relatedProp = currentType.GetProperty(propName);
+
+                var relatedType = relatedProp != null ? relatedProp.PropertyType : meta.GetMappedClass(EntityMode.Poco);
+                if (propType.IsCollectionType && relatedProp != null && relatedType.IsGenericType)
                 {
-                    relatedType = relatedType.IsGenericType
-                        ? relatedType.GetGenericArguments()[0]
-                        : meta.GetMappedClass(EntityMode.Poco);
+                    relatedType = relatedType.GetGenericArguments()[0];
                 }
 
                 var convertToType = propType.IsCollectionType

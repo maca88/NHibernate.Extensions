@@ -26,6 +26,12 @@ namespace NHibernate.Extensions.Linq
             "Take"
         };
 
+        public static readonly HashSet<string> CountMethods = new HashSet<string>
+        {
+            "Count",
+            "LongCount"
+        };
+
         private static readonly MethodInfo WhereMethod;
 
         static IncludeRewriterVisitor()
@@ -39,12 +45,21 @@ namespace NHibernate.Extensions.Linq
 
         public bool SkipTake { get; set; }
 
+        public bool Count { get; set; }
+
         public bool Future { get; set; }
 
         public bool FutureValue { get; set; }
 
         public Expression Modify(Expression expression)
         {
+            //Check if is the last called method is a Count method
+            var methodCallExpr = expression as MethodCallExpression;
+            if (methodCallExpr != null && CountMethods.Contains(methodCallExpr.Method.Name))
+            {
+                Count = true;
+            }
+
             return Visit(expression);
         }
 

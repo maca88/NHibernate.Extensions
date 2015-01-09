@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -79,6 +81,22 @@ namespace NHibernate.Linq
             return query;
         }
 
+        public static IQueryable Where(this IQueryable query, string predicate, params object[] values)
+        {
+            return DynamicQueryable.Where(query, predicate, values);
+        }
+
+        private static IEnumerable ToList(this IQueryable query)
+        {
+            var type = query.GetType().GetGenericArguments()[0];
+            var methodInfo = typeof (Enumerable).GetMethod("ToList").MakeGenericMethod(type);
+            return (IEnumerable)methodInfo.Invoke(null, new object[] {query});
+        }
+
+        public static List<T> ToList<T>(this IQueryable query)
+        {
+            return ToList(query).Cast<T>().ToList();
+        }
 
     }
 

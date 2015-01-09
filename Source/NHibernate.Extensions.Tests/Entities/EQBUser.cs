@@ -8,5 +8,7 @@ namespace NHibernate.Extensions.Tests.Entities
     public class EQBUser : Entity, IUser
     {
         public virtual string UserName { get; set; }
+
+        public virtual EQBUser Related { get; set; }
     }
 }
