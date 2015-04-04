@@ -15,84 +15,84 @@ namespace NHibernate.Extensions.Tests
 
         #region GetEntity
 
-        [TestMethod]
-        public void GetEntityLongTestWithouSkipTake()
-        {
-            FillData();
-            EQBPerson petra;
+        //[TestMethod]
+        //public void GetEntityLongTestWithouSkipTake()
+        //{
+        //    FillData();
+        //    EQBPerson petra;
 
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.QueryOver<EQBPerson>()
-                    .Where(o => o.Name == "Petra")
-                    .Lock().Upgrade
-                    .Include(o => o.BestFriend)
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .SingleOrDefault();
-            }
-            ValidateGetEntityResult(petra);
-        }
+        //    using (var session = NHConfig.OpenSession())
+        //    {
+        //        petra = session.QueryOver<EQBPerson>()
+        //            .Where(o => o.Name == "Petra")
+        //            .Lock().Upgrade
+        //            .Include(o => o.BestFriend)
+        //            .Include(o => o.BestFriend.IdentityCard)
+        //            .Include(o => o.BestFriend.BestFriend)
+        //            .Include(o => o.BestFriend.BestFriend.BestFriend)
+        //            .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+        //            .Include(o => o.CurrentOwnedVehicles)
+        //            .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+        //            .Include(o => o.DrivingLicence)
+        //            .Include(o => o.IdentityCard)
+        //            .Include(o => o.MarriedWith)
+        //            .Include(o => o.OwnedHouses)
+        //            .Include(o => o.PreviouslyOwnedVehicles)
+        //            .SingleOrDefault();
+        //    }
+        //    ValidateGetEntityResult(petra);
+        //}
 
-        [TestMethod]
-        public void GetEntityLongTestWithSkipTake()
-        {
-            FillData();
-            EQBPerson petra;
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.QueryOver<EQBPerson>()
-                    .Where(o => o.Name == "Petra")
-                    .Lock().Upgrade
-                    .Include(o => o.BestFriend)
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Skip(0).Take(1)
-                    .SingleOrDefault();
-            }
-            ValidateGetEntityResult(petra);
-        }
+        //[TestMethod]
+        //public void GetEntityLongTestWithSkipTake()
+        //{
+        //    FillData();
+        //    EQBPerson petra;
+        //    using (var session = NHConfig.OpenSession())
+        //    {
+        //        petra = session.QueryOver<EQBPerson>()
+        //            .Where(o => o.Name == "Petra")
+        //            .Lock().Upgrade
+        //            .Include(o => o.BestFriend)
+        //            .Include(o => o.BestFriend.IdentityCard)
+        //            .Include(o => o.BestFriend.BestFriend)
+        //            .Include(o => o.BestFriend.BestFriend.BestFriend)
+        //            .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+        //            .Include(o => o.CurrentOwnedVehicles)
+        //            .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+        //            .Include(o => o.DrivingLicence)
+        //            .Include(o => o.IdentityCard)
+        //            .Include(o => o.MarriedWith)
+        //            .Include(o => o.OwnedHouses)
+        //            .Include(o => o.PreviouslyOwnedVehicles)
+        //            .Skip(0).Take(1)
+        //            .SingleOrDefault();
+        //    }
+        //    ValidateGetEntityResult(petra);
+        //}
 
-        [TestMethod]
-        public void GetEntityShortTest()
-        {
-            FillData();
-            EQBPerson petra;
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.QueryOver<EQBPerson>()
-                    .Where(o => o.Name == "Petra")
-                    .Lock().Upgrade
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .SingleOrDefault();
-            }
-            ValidateGetEntityResult(petra);
-        }
+        //[TestMethod]
+        //public void GetEntityShortTest()
+        //{
+        //    FillData();
+        //    EQBPerson petra;
+        //    using (var session = NHConfig.OpenSession())
+        //    {
+        //        petra = session.QueryOver<EQBPerson>()
+        //            .Where(o => o.Name == "Petra")
+        //            .Lock().Upgrade
+        //            .Include(o => o.BestFriend.IdentityCard)
+        //            .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+        //            .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+        //            .Include(o => o.DrivingLicence)
+        //            .Include(o => o.IdentityCard)
+        //            .Include(o => o.MarriedWith)
+        //            .Include(o => o.OwnedHouses)
+        //            .Include(o => o.PreviouslyOwnedVehicles)
+        //            .SingleOrDefault();
+        //    }
+        //    ValidateGetEntityResult(petra);
+        //}
 
         #endregion
 
@@ -104,80 +104,70 @@ namespace NHibernate.Extensions.Tests
             FillData();
             EQBPerson petra;
 
-            /*NHibernate way*/
-            using (var session = NHConfig.OpenSession())
-            using (var transaction = session.BeginTransaction())
-            {
-                session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.BestFriend).Eager
-                       .Fetch(o => o.BestFriend.IdentityCard).Eager
-                       .Where(o => o.Name == "Petra")
-                       .Future();
-                session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.BestFriend).Eager
-                       .Fetch(o => o.BestFriend.BestFriend).Eager
-                       .Fetch(o => o.BestFriend.BestFriend.BestFriend).Eager
-                       .Fetch(o => o.BestFriend.BestFriend.BestFriend.BestFriend).Eager
-                       .Where(o => o.Name == "Petra")
-                       .Future();
-                session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.CurrentOwnedVehicles).Eager
-                       .Fetch(o => o.CurrentOwnedVehicles.First().Wheels).Eager
-                       .Where(o => o.Name == "Petra")
-                       .Future();
-                session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.DrivingLicence).Eager
-                       .Where(o => o.Name == "Petra")
-                       .Future();
-                session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.IdentityCard).Eager
-                       .Where(o => o.Name == "Petra")
-                       .Future();
-                session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.MarriedWith).Eager
-                       .Where(o => o.Name == "Petra")
-                       .Future();
-                session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.OwnedHouses).Eager
-                       .Where(o => o.Name == "Petra")
-                       .Future();
-                petra =  session.QueryOver<EQBPerson>()
-                       .Fetch(o => o.PreviouslyOwnedVehicles).Eager
-                       .Where(o => o.Name == "Petra")
-                       .FutureValue().Value;
-                //petra = session.QueryOver<EQBPerson>()
-                //               .Where(o => o.Name == "Petra")
-                //               .FutureValue().Value;
-                transaction.Commit();
+            ///*NHibernate way*/
+            //using (var session = NHConfig.OpenSession())
+            //using (var transaction = session.BeginTransaction())
+            //{
+            //    session.QueryOver<EQBPerson>()
+            //           .Fetch(o => o.BestFriend).Eager
+            //           .Fetch(o => o.BestFriend.IdentityCard).Eager
+            //           .Fetch(o => o.BestFriend.BestFriend).Eager
+            //           .Fetch(o => o.BestFriend.BestFriend.BestFriend).Eager
+            //           .Fetch(o => o.BestFriend.BestFriend.BestFriend.BestFriend).Eager
+            //           .Fetch(o => o.CurrentOwnedVehicles).Eager
+            //           .Fetch(o => o.CurrentOwnedVehicles.First().Wheels).Eager
+            //           .Fetch(o => o.DrivingLicence).Eager
+            //           .Fetch(o => o.IdentityCard).Eager
+            //           .Fetch(o => o.MarriedWith).Eager
+            //           .Where(o => o.Name == "Petra")
+            //           .Future();
+            //    session.QueryOver<EQBPerson>()
+            //           .Fetch(o => o.OwnedHouses).Eager
+            //           .Where(o => o.Name == "Petra")
+            //           .Future();
+            //    petra = session.QueryOver<EQBPerson>()
+            //           .Fetch(o => o.PreviouslyOwnedVehicles).Eager
+            //           .Where(o => o.Name == "Petra")
+            //           .FutureValue().Value;
+            //    //petra = session.QueryOver<EQBPerson>()
+            //    //               .Where(o => o.Name == "Petra")
+            //    //               .FutureValue().Value;
+            //    transaction.Commit();
 
-                Assert.AreEqual(8, GetQueryCount(0));
-                ClearStatistics();
-            }
-            ValidateGetEntityResult(petra);   
+            //    //Assert.AreEqual(8, GetQueryCount(0));
+            //    ClearStatistics();
+            //}
+            //ValidateGetEntityResult(petra);   
 
             /*Simplified way - QueryOver*/
+            //using (var session = NHConfig.OpenSession())
+            //{
+            //    petra = session.QueryOver<EQBPerson>()
+            //                      .Include(o => o.BestFriend.IdentityCard)
+            //                      .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+            //                      .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+            //                      .Include(o => o.DrivingLicence)
+            //                      .Include(o => o.IdentityCard)
+            //                      .Include(o => o.MarriedWith)
+            //                      .Include(o => o.OwnedHouses)
+            //                      .Include(o => o.PreviouslyOwnedVehicles)
+            //                      .Where(o => o.Name == "Petra")
+            //                      .SingleOrDefault();
+
+            //    //Assert.AreEqual(8, GetQueryCount(0));
+            //    //ClearStatistics();
+            //}
+            //ValidateGetEntityResult(petra);
+
+            /*Simplified way - Linq*/
             using (var session = NHConfig.OpenSession())
             {
-                petra = session.QueryOver<EQBPerson>()
-                                  .Include(o => o.BestFriend.IdentityCard)
-                                  .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                                  .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                                  .Include(o => o.DrivingLicence)
-                                  .Include(o => o.IdentityCard)
-                                  .Include(o => o.MarriedWith)
-                                  .Include(o => o.OwnedHouses)
-                                  .Include(o => o.PreviouslyOwnedVehicles)
-                                  .Where(o => o.Name == "Petra")
-                                  .SingleOrDefault();
+                //session.Query<EQBPerson>()
+                //   .Fetch(o => o.BestFriend)
+                //    .ThenFetch(o => o.IdentityCard)
+                //    .Fetch()
 
-                //Assert.AreEqual(8, GetQueryCount(0));
-                //ClearStatistics();
-            }
-            ValidateGetEntityResult(petra);
 
-            /*Simplified way - QueryOver*/
-            using (var session = NHConfig.OpenSession())
-            {
                 petra = session.Query<EQBPerson>()
                                   .Include(o => o.BestFriend.IdentityCard)
                                   .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)

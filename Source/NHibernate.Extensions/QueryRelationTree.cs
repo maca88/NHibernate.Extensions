@@ -30,11 +30,16 @@ namespace NHibernate.Extensions
         {
             var result = new Dictionary<int, List<string>>();
             var idx = 0;
-            DeepFisrstSearchRecursive(Node.Children, result, ref idx);
+            DeepFirstSearchRecursive(Node.Children, result, ref idx);
             return result;
         }
 
-        private static void DeepFisrstSearchRecursive(Dictionary<string, QueryRelationNode> children, Dictionary<int, List<string>> result, ref int idx)
+        public List<string> GetLeafs()
+        {
+            return DeepFirstSearch().Select(pair => pair.Value.Last()).ToList();
+        } 
+
+        private static void DeepFirstSearchRecursive(Dictionary<string, QueryRelationNode> children, Dictionary<int, List<string>> result, ref int idx)
         {
             foreach (var child in children)
             {
@@ -62,7 +67,7 @@ namespace NHibernate.Extensions
                     }
                         
                 }
-                DeepFisrstSearchRecursive(node.Children, result, ref idx);
+                DeepFirstSearchRecursive(node.Children, result, ref idx);
             }
         }
     }

@@ -169,6 +169,25 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void test_selectmany()
+        {
+            IPerson petra;
+            ClearStatistics();
+            /*Without parameter*/
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBIdentityCard>()
+                    .Where(o => o.Code == "SD")
+                    .Fetch(o => o.Owner).ThenFetch(o => o.BestFriend).ThenFetch(o => o.MarriedWith)
+                    //.Select(o => o.Owner)
+                    .ToList();
+
+                Assert.AreEqual(1, GetQueryCount(0));
+            }
+            //Assert.AreEqual(petra.CreatedBy.UserName, "System");
+        }
+
+        [TestMethod]
         public void test_include_with_interface()
         {
             EQBPerson petra;
@@ -244,38 +263,20 @@ namespace NHibernate.Extensions.Tests
             using (var session = NHConfig.OpenSession())
             {
                 session.Query<EQBPerson>()
-                       .Fetch(o => o.BestFriend)
-                       .ThenFetch(o => o.IdentityCard)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .FetchMany(o => o.CurrentOwnedVehicles)
-                       .ThenFetchMany(o => o.Wheels)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.DrivingLicence)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.CreatedBy)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.IdentityCard)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.MarriedWith)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
+                    .Fetch(o => o.BestFriend)
+                        .ThenFetch(o => o.IdentityCard)
+                    .Fetch(o => o.BestFriend)
+                        .ThenFetch(o => o.BestFriend)
+                            .ThenFetch(o => o.BestFriend)
+                                .ThenFetch(o => o.BestFriend)
+                    .FetchMany(o => o.CurrentOwnedVehicles)
+                        .ThenFetchMany(o => o.Wheels)
+                    .Fetch(o => o.DrivingLicence)
+                    .Fetch(o => o.CreatedBy)
+                    .Fetch(o => o.IdentityCard)
+                    .Fetch(o => o.MarriedWith)
+                    .Where(o => o.Name == "Petra")
+                    .ToFuture();
                 session.Query<EQBPerson>()
                        .FetchMany(o => o.OwnedHouses)
                        .Where(o => o.Name == "Petra")
@@ -285,7 +286,7 @@ namespace NHibernate.Extensions.Tests
                        .Where(o => o.Name == "Petra")
                        .ToFutureValue().Value;
 
-                Assert.AreEqual(9, GetQueryCount(0));
+                Assert.AreEqual(3, GetQueryCount(0));
             }
             ValidateGetEntityResult(petra);
 
