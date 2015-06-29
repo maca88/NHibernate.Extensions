@@ -50,9 +50,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeepClone\DeepCloneMemberOptions.cs" />
+    <Compile Include="DeepClone\DeepCloneOptions.cs" />
+    <Compile Include="DeepClone\DeepCloneParentEntity.cs" />
+    <Compile Include="DeepClone\DeepCloneTypeOptions.cs" />
+    <Compile Include="DeepClone\IDeepCloneMemberOptions.cs" />
+    <Compile Include="DeepClone\IDeepCloneTypeOptions.cs" />
     <Compile Include="DynamicLinq\Dynamic.cs" />
     <Compile Include="Helpers\ExpressionHelper.cs" />
     <Compile Include="Helpers\TypeHelper.cs" />
+    <Compile Include="Internal\ExpressionExtensions.cs" />
+    <Compile Include="Internal\TypeExtensions.cs" />
     <Compile Include="Linq\IncludeRewriterVisitor.cs" />
     <Compile Include="Linq\LinqExtensions.cs" />
     <Compile Include="Linq\Lock\LockExpressionNode.cs" />
@@ -69,10 +77,12 @@
     <Compile Include="QueryOver\QueryOverExtensions.cs" />
     <Compile Include="QueryRelationNode.cs" />
     <Compile Include="QueryRelationTree.cs" />
+    <Compile Include="DeepCloneSessionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

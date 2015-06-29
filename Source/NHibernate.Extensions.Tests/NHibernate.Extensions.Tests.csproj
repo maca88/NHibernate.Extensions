@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="BaseIncludeTest.cs" />
     <Compile Include="CascadeConvention.cs" />
+    <Compile Include="DeepCloneTests.cs" />
     <Compile Include="Entities\EQBUser.cs" />
     <Compile Include="Entities\IUser.cs" />
     <Compile Include="EntityQueryBuilderTests.cs" />

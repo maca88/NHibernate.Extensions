@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using NHibernate.Engine;
-using NHibernate.Extensions.Helpers;
 using NHibernate.Linq;
-using NHibernate.Persister.Collection;
 using NHibernate.Type;
 using TypeHelper = NHibernate.Extensions.Helpers.TypeHelper;
 

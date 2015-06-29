@@ -5,22 +5,10 @@ using System.Linq;
 using System.Linq.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using NHibernate.Engine;
-using NHibernate.Extensions;
 using NHibernate.Extensions.Helpers;
 using NHibernate.Extensions.Linq;
-using NHibernate.Extensions.Lock;
-using NHibernate.Linq.Visitors;
-using NHibernate.Linq.Visitors.ResultOperatorProcessors;
-using NHibernate.Param;
-using NHibernate.SqlCommand;
 using Remotion.Linq;
-using Remotion.Linq.Clauses;
-using Remotion.Linq.Clauses.StreamedData;
-using Remotion.Linq.Parsing.Structure;
-using Remotion.Linq.Parsing.Structure.IntermediateModel;
-using Remotion.Linq.Parsing.Structure.NodeTypeProviders;
 
 namespace NHibernate.Linq
 {

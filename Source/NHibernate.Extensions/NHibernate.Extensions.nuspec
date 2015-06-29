@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>NHibernate.Extensions</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <authors>Maca88</authors>
     <owners>Maca88</owners>
     <licenseUrl>https://github.com/maca88/NHibernate.Extensions/blob/master/LICENSE</licenseUrl>
