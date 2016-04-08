@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
+using NHibernate.Intercept;
+using NHibernate.Proxy;
+using NHibernate.Proxy.DynamicProxy;
 
 namespace NHibernate.Extensions.Helpers
 {
@@ -21,20 +21,32 @@ namespace NHibernate.Extensions.Helpers
             return false;
         }
 
-		public static bool IsAssignableToGenericType(this System.Type givenType, System.Type genericType)
-		{
-			var interfaceTypes = givenType.GetInterfaces();
+        /// <summary>
+        /// Gets the underlying class type of a persistent object that may be proxied
+        /// </summary>
+        public static System.Type GetUnproxiedType(this object persistentObject)
+        {
+            var proxy = persistentObject as INHibernateProxy;
+            if (proxy != null)
+                return proxy.HibernateLazyInitializer.PersistentClass;
 
-			if (interfaceTypes.Any(it => it.IsGenericType && it.GetGenericTypeDefinition() == genericType))
-			{
-				return true;
-			}
+            var nhProxy = persistentObject as IProxy;
+            if (nhProxy == null)
+                return persistentObject.GetType();
 
-			if (givenType.IsGenericType && givenType.GetGenericTypeDefinition() == genericType)
-				return true;
+            var lazyInitializer = nhProxy.Interceptor as ILazyInitializer;
+            if (lazyInitializer != null)
+                return lazyInitializer.PersistentClass;
 
-			var baseType = givenType.BaseType;
-			return baseType != null && IsAssignableToGenericType(baseType, genericType);
-		}
+            var fieldInterceptorAccessor = nhProxy.Interceptor as IFieldInterceptorAccessor;
+            if (fieldInterceptorAccessor != null)
+            {
+                return fieldInterceptorAccessor.FieldInterceptor == null
+                    ? nhProxy.GetType().BaseType
+                    : fieldInterceptorAccessor.FieldInterceptor.MappedClass;
+            }
+
+            return persistentObject.GetType();
+        }
 	}
 }

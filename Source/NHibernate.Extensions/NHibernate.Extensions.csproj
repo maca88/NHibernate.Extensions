@@ -35,7 +35,7 @@
   <ItemGroup>
     <Reference Include="Iesi.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Iesi.Collections.4.0.0.4000\lib\net40\Iesi.Collections.dll</HintPath>
+      <HintPath>..\packages\Iesi.Collections.4.0.1.4000\lib\net40\Iesi.Collections.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="NHibernate, Version=4.0.0.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
@@ -54,15 +54,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeepClone\DeepCloneMemberOptions.cs" />
+    <Compile Include="DeepClone\DeepCloneOptions.cs" />
+    <Compile Include="DeepClone\DeepCloneParentEntity.cs" />
+    <Compile Include="DeepClone\DeepCloneTypeOptions.cs" />
+    <Compile Include="DeepClone\IDeepCloneMemberOptions.cs" />
+    <Compile Include="DeepClone\IDeepCloneTypeOptions.cs" />
     <Compile Include="DynamicLinq\Dynamic.cs" />
     <Compile Include="Helpers\ExpressionHelper.cs" />
     <Compile Include="Helpers\TypeHelper.cs" />
+    <Compile Include="Internal\ExpressionExtensions.cs" />
+    <Compile Include="Internal\TypeExtensions.cs" />
     <Compile Include="Linq\IncludeRewriterVisitor.cs" />
     <Compile Include="Linq\LinqExtensions.cs" />
     <Compile Include="Linq\Lock\LockExpressionNode.cs" />
     <Compile Include="Linq\Lock\LockResultOperator.cs" />
     <Compile Include="Linq\Lock\ProcessLock.cs" />
     <Compile Include="Linq\IncludeQueryProvider.cs" />
+    <Compile Include="Linq\QueryInfo.cs" />
     <Compile Include="Linq\SkipTakeVisitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryOver\IMultipleQueryOverLockBuilder.cs" />
@@ -72,10 +81,12 @@
     <Compile Include="QueryOver\QueryOverExtensions.cs" />
     <Compile Include="QueryRelationNode.cs" />
     <Compile Include="QueryRelationTree.cs" />
+    <Compile Include="DeepCloneSessionExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using FluentNHibernate.Utils;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Linq;
-using NHibernate.Util;
 using T4FluentNH.Tests;
 
 namespace NHibernate.Extensions.Tests
@@ -26,45 +22,45 @@ namespace NHibernate.Extensions.Tests
                     .Take(10);
 
                 var query = session.Query<EQBPerson>()
-                       .Fetch(o => o.BestFriend)
-                       .ThenFetch(o => o.IdentityCard)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .Fetch(o => o.BestFriend)
+                    .ThenFetch(o => o.IdentityCard)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .Fetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .Fetch(o => o.BestFriend)
+                    .ThenFetch(o => o.BestFriend)
+                    .ThenFetch(o => o.BestFriend)
+                    .ThenFetch(o => o.BestFriend)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .FetchMany(o => o.CurrentOwnedVehicles)
-                       .ThenFetchMany(o => o.Wheels)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .FetchMany(o => o.CurrentOwnedVehicles)
+                    .ThenFetchMany(o => o.Wheels)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .Fetch(o => o.DrivingLicence)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .Fetch(o => o.DrivingLicence)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .Fetch(o => o.IdentityCard)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .Fetch(o => o.IdentityCard)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .Fetch(o => o.MarriedWith)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .Fetch(o => o.MarriedWith)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .FetchMany(o => o.OwnedHouses)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .FetchMany(o => o.OwnedHouses)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .FetchMany(o => o.PreviouslyOwnedVehicles)
-                       .Where(o => subQuery.Contains(o))
-                       .ToFuture();
+                    .FetchMany(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => subQuery.Contains(o))
+                    .ToFuture();
                 Assert.AreEqual(4, query.ToList().Count);
             }
-            
+
 
             using (var session = NHConfig.OpenSession())
             {
@@ -125,7 +121,6 @@ namespace NHibernate.Extensions.Tests
 
                 var people = query.ToList();
                 Assert.AreEqual(4, people.Count);
-
             }
         }
 
@@ -149,12 +144,11 @@ namespace NHibernate.Extensions.Tests
 
                 var people = await query.ToListAsync();
                 Assert.AreEqual(4, people.Count);
-
             }
         }
 
         [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof (InvalidOperationException))]
         public void using_single_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -174,7 +168,7 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof (InvalidOperationException))]
         public void using_first_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -193,25 +187,25 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-		[TestMethod]
-		[ExpectedException(typeof(InvalidOperationException))]
-		public async Task using_first_async_method_for_retriving_a_person_that_dont_exists()
-		{
-			EQBPerson test;
-			using (var session = NHConfig.OpenSession())
-			{
-				test = await session.Query<EQBPerson>()
-					.Include(o => o.BestFriend.IdentityCard)
-					.Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-					.Include(o => o.CurrentOwnedVehicles.First().Wheels)
-					.Include(o => o.DrivingLicence)
-					.Include(o => o.IdentityCard)
-					.Include(o => o.MarriedWith)
-					.Include(o => o.OwnedHouses)
-					.Include(o => o.PreviouslyOwnedVehicles)
-					.FirstAsync(o => o.Name == "Test");
-			}
-		}
+        [TestMethod]
+        [ExpectedException(typeof (InvalidOperationException))]
+        public async Task using_first_async_method_for_retriving_a_person_that_dont_exists()
+        {
+            EQBPerson test;
+            using (var session = NHConfig.OpenSession())
+            {
+                test = await session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .FirstAsync(o => o.Name == "Test");
+            }
+        }
 
         [TestMethod]
         public void using_tofutorevalue_method_without_getting_value()
@@ -278,28 +272,47 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
-		[TestMethod]
-		public async Task using_tofutorevalue_async_method_for_retriving_a_person_that_dont_exists()
-		{
-			EQBPerson test;
-			using (var session = NHConfig.OpenSession())
-			{
-				test = await session.Query<EQBPerson>()
-					.Include(o => o.BestFriend.IdentityCard)
-					.Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-					.Include(o => o.CurrentOwnedVehicles.First().Wheels)
-					.Include(o => o.DrivingLicence)
-					.Include(o => o.IdentityCard)
-					.Include(o => o.MarriedWith)
-					.Include(o => o.OwnedHouses)
-					.Include(o => o.PreviouslyOwnedVehicles)
-					.Where(o => o.Name == "Test")
-					.ToFutureValueAsync().GetValue();
-			}
-			Assert.IsNull(test);
-		}
+        [TestMethod]
+        public void test_selectmany()
+        {
+            IPerson petra;
+            ClearStatistics();
+            /*Without parameter*/
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBIdentityCard>()
+                    .Where(o => o.Code == "SD")
+                    .Fetch(o => o.Owner).ThenFetch(o => o.BestFriend).ThenFetch(o => o.MarriedWith)
+                    //.Select(o => o.Owner)
+                    .ToList();
 
-		[TestMethod]
+                Assert.AreEqual(1, GetQueryCount(0));
+            }
+            //Assert.AreEqual(petra.CreatedBy.UserName, "System");
+        }
+
+        [TestMethod]
+        public async Task using_tofutorevalue_async_method_for_retriving_a_person_that_dont_exists()
+        {
+            EQBPerson test;
+            using (var session = NHConfig.OpenSession())
+            {
+                test = await session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Test")
+                    .ToFutureValueAsync().GetValue();
+            }
+            Assert.IsNull(test);
+        }
+
+        [TestMethod]
         public void test_include_with_interface()
         {
             EQBPerson petra;
@@ -395,48 +408,30 @@ namespace NHibernate.Extensions.Tests
             using (var session = NHConfig.OpenSession())
             {
                 session.Query<EQBPerson>()
-                       .Fetch(o => o.BestFriend)
-                       .ThenFetch(o => o.IdentityCard)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
+                    .Fetch(o => o.BestFriend)
+                    .ThenFetch(o => o.IdentityCard)
+                    .Fetch(o => o.BestFriend)
+                    .ThenFetch(o => o.BestFriend)
+                    .ThenFetch(o => o.BestFriend)
+                    .ThenFetch(o => o.BestFriend)
+                    .FetchMany(o => o.CurrentOwnedVehicles)
+                    .ThenFetchMany(o => o.Wheels)
+                    .Fetch(o => o.DrivingLicence)
+                    .Fetch(o => o.CreatedBy)
+                    .Fetch(o => o.IdentityCard)
+                    .Fetch(o => o.MarriedWith)
+                    .Where(o => o.Name == "Petra")
+                    .ToFuture();
                 session.Query<EQBPerson>()
-                       .Fetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .ThenFetch(o => o.BestFriend)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .FetchMany(o => o.CurrentOwnedVehicles)
-                       .ThenFetchMany(o => o.Wheels)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.DrivingLicence)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.CreatedBy)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.IdentityCard)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .Fetch(o => o.MarriedWith)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
-                session.Query<EQBPerson>()
-                       .FetchMany(o => o.OwnedHouses)
-                       .Where(o => o.Name == "Petra")
-                       .ToFuture();
+                    .FetchMany(o => o.OwnedHouses)
+                    .Where(o => o.Name == "Petra")
+                    .ToFuture();
                 petra = session.Query<EQBPerson>()
-                       .FetchMany(o => o.PreviouslyOwnedVehicles)
-                       .Where(o => o.Name == "Petra")
-                       .ToFutureValue().Value;
+                    .FetchMany(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .ToFutureValue().Value;
 
-                Assert.AreEqual(9, GetQueryCount(0));
+                Assert.AreEqual(3, GetQueryCount(0));
             }
             ValidateGetEntityResult(petra);
 

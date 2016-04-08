@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -7,8 +6,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Extensions.Helpers;
+using NHibernate.Extensions.Internal;
 using NHibernate.Linq;
-using NHibernate.Persister.Collection;
 using NHibernate.Type;
 using TypeHelper = NHibernate.Extensions.Helpers.TypeHelper;
 
@@ -216,7 +215,9 @@ namespace NHibernate.Extensions.Linq
                 tree.AddNode(path);
             }
 
-            var queries = tree.DeepFirstSearch().Select(pair => FetchFromPath(query, pair.Value.Last())).ToList();
+            var leafs = tree.GetLeafs();
+            leafs.Sort();
+            var queries = leafs.Aggregate(new QueryInfo(query), FetchFromPath).GetQueries();
             var toFutureMethod = async ? ToFutureAsyncMethod : ToFutureMethod;
             var i = 0;
             foreach (var q in queries)
@@ -247,16 +248,17 @@ namespace NHibernate.Extensions.Linq
                 tree.AddNode(path);
             }
 
-            var queries = tree.DeepFirstSearch().Select(pair => FetchFromPath(query, pair.Value.Last())).ToList();
+            var leafs = tree.GetLeafs();
+            leafs.Sort();
+            var queries = leafs.Aggregate(new QueryInfo(query), FetchFromPath).GetQueries();
             var toFutureMethod = async ? ToFutureAsyncMethod : ToFutureMethod;
-
             var i = 0;
             foreach (var q in queries)
             {
                 if (i == 0)
-                    result = toFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] { q }); //q.ToFuture();
+                    result = toFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
                 else
-                    toFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] { q }); //q.ToFuture();
+                    toFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
                 i++;
             }
             return result;
@@ -297,12 +299,13 @@ namespace NHibernate.Extensions.Linq
                     new SkipTakeVisitor().RemoveSkipAndTake(query.Expression),
                     Expression.Lambda(contains, pe)
                 });
-            return (IQueryable)CreateQueryMethodDefinition.MakeGenericMethod(Type)
-                .Invoke(query.Provider, new object[] { where });
+            return (IQueryable) CreateQueryMethodDefinition.MakeGenericMethod(Type)
+                .Invoke(query.Provider, new object[] {where});
         }
 
-        private IQueryable FetchFromPath(IQueryable query, string path)
+        private QueryInfo FetchFromPath(QueryInfo queryInfo, string path)
         {
+            var query = queryInfo.Query;
             var currentType = Type;
             var metas = Session.Factory.GetAllClassMetadata()
                 .Select(o => o.Value)
@@ -314,9 +317,8 @@ namespace NHibernate.Extensions.Linq
                 throw new HibernateException(string.Format("There are more than one metadata for type '{0}'", Type));
 
             var meta = metas.First();
-            var currentTypeImpl = meta.GetMappedClass(EntityMode.Poco);
             var paths = path.Split('.');
-
+            var index = 0;
             foreach (var propName in paths)
             {
                 var propType = meta.GetPropertyType(propName);
@@ -329,6 +331,23 @@ namespace NHibernate.Extensions.Linq
                 {
                     throw new Exception(string.Format("Property '{0}' does not implement IAssociationType interface",
                         propName));
+                }
+
+                if (assocType.IsCollectionType)
+                {
+                    var collPath = string.Join(".", paths.Take(index + 1));
+
+                    //Check if we can fetch the collection without create a cartesian product
+                    //Fetch can occur only for nested collection
+                    if (!string.IsNullOrEmpty(queryInfo.CollectionPath) &&
+                        !collPath.StartsWith(queryInfo.CollectionPath))
+                    {
+                        //We have to continue fetching within a new base query
+                        var nextQueryInfo = queryInfo.GetOrCreateNext();
+                        return FetchFromPath(nextQueryInfo, path);
+                    }
+
+                    queryInfo.CollectionPath = collPath;
                 }
 
                 meta = Session.Factory.GetClassMetadata(assocType.GetAssociatedEntityName(Session.Factory));
@@ -355,7 +374,7 @@ namespace NHibernate.Extensions.Linq
                 //    : null;
                 //var expression = CreatePropertyExpression(currentType, propName, convertToType);
                 //No fetch before
-                if (TypeHelper.IsSubclassOfRawGeneric(typeof (NhQueryable<>), query.GetType()))
+                if (TypeHelper.IsSubclassOfRawGeneric(typeof (NhQueryable<>), query.GetType()) || index == 0)
                 {
                     fetchMethod = propType.IsCollectionType
                         ? FetchManyMethod.MakeGenericMethod(new[] {Type, relatedType})
@@ -370,8 +389,10 @@ namespace NHibernate.Extensions.Linq
 
                 query = CreateNhFetchRequest<IQueryable>(fetchMethod, query, Type, relatedType, expression);
                 currentType = relatedType;
+                index++;
             }
-            return query;
+            queryInfo.Query = query;
+            return queryInfo;
         }
 
     }

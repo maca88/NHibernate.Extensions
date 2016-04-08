@@ -10,7 +10,7 @@
     <description>Various additions for NHibernateAsync like the Include method from EntityFramework</description>
     <copyright>Copyright 2016</copyright>
     <tags>NHibernate Async Include</tags>
-	<dependencies>
+    <dependencies>
       <dependency id="NHibernateAsync" version="[1.1.0,2)" />
     </dependencies>
   </metadata>
