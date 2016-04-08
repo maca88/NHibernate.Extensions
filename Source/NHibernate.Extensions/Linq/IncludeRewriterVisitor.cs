@@ -10,7 +10,7 @@ namespace NHibernate.Extensions.Linq
 
     public class IncludeRewriterVisitor : ExpressionVisitor
     {
-        public static readonly HashSet<string> SingleReslutMethods = new HashSet<string>
+        public static readonly HashSet<string> SingleResultMethods = new HashSet<string>
         {
             "FirstOrDefault",
             "First",
@@ -30,7 +30,7 @@ namespace NHibernate.Extensions.Linq
         {
             "Count",
             "LongCount"
-        };
+		};
 
         private static readonly MethodInfo WhereMethod;
 
@@ -46,10 +46,6 @@ namespace NHibernate.Extensions.Linq
         public bool SkipTake { get; set; }
 
         public bool Count { get; set; }
-
-        public bool Future { get; set; }
-
-        public bool FutureValue { get; set; }
 
         public Expression Modify(Expression expression)
         {
@@ -68,19 +64,7 @@ namespace NHibernate.Extensions.Linq
             if (SkipTakeMethods.Contains(node.Method.Name))
                 SkipTake = true;
 
-            if (node.Method.Name == "ToFuture")
-            {
-                Future = true;
-                return Visit(node.Arguments[0]);
-            }
-
-            if (node.Method.Name == "ToFutureValue")
-            {
-                FutureValue = true;
-                return Visit(node.Arguments[0]);
-            }
-
-            if (SingleReslutMethods.Contains(node.Method.Name))
+            if (SingleResultMethods.Contains(node.Method.Name))
             {
                 SingleResult = true;
                 SingleResultMethodName = node.Method.Name;
