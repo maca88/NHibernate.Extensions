@@ -20,33 +20,17 @@ namespace NHibernate.Extensions.Tests
                 var subQuery = session.Query<EQBPerson>()
                     .Skip(0)
                     .Take(10);
-
                 var query = session.Query<EQBPerson>()
                     .Fetch(o => o.BestFriend)
-                    .ThenFetch(o => o.IdentityCard)
-                    .Where(o => subQuery.Contains(o))
-                    .ToFuture();
-                session.Query<EQBPerson>()
+                        .ThenFetch(o => o.IdentityCard)
                     .Fetch(o => o.BestFriend)
-                    .ThenFetch(o => o.BestFriend)
-                    .ThenFetch(o => o.BestFriend)
-                    .ThenFetch(o => o.BestFriend)
-                    .Where(o => subQuery.Contains(o))
-                    .ToFuture();
-                session.Query<EQBPerson>()
+                        .ThenFetch(o => o.BestFriend)
+                        .ThenFetch(o => o.BestFriend)
+                        .ThenFetch(o => o.BestFriend)
                     .FetchMany(o => o.CurrentOwnedVehicles)
-                    .ThenFetchMany(o => o.Wheels)
-                    .Where(o => subQuery.Contains(o))
-                    .ToFuture();
-                session.Query<EQBPerson>()
+                        .ThenFetchMany(o => o.Wheels)
                     .Fetch(o => o.DrivingLicence)
-                    .Where(o => subQuery.Contains(o))
-                    .ToFuture();
-                session.Query<EQBPerson>()
                     .Fetch(o => o.IdentityCard)
-                    .Where(o => subQuery.Contains(o))
-                    .ToFuture();
-                session.Query<EQBPerson>()
                     .Fetch(o => o.MarriedWith)
                     .Where(o => subQuery.Contains(o))
                     .ToFuture();

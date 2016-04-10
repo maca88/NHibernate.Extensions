@@ -22,18 +22,52 @@ namespace NHibernate.Extensions.Tests
             {
                 petra = session.Query<EQBPerson>()
                     .First(o => o.Name == "Petra");
+                clone = session.DeepClone(petra, o => o
+                    .ForType<EQBPerson>(t => 
+                        t.ForMember(m => m.Name, opts => opts.Ignore())
+                        ));
+                // Lazy load some relations after cloning
+                var friend = petra.BestFriend;
+                var card = petra.IdentityCard;
 
-                clone = session.DeepClone(petra);
             }
-
             Assert.AreEqual(petra.Id, clone.Id);
             Assert.AreEqual(petra.Name, clone.Name);
             Assert.AreEqual(petra.LastName, clone.LastName);
+            Assert.IsNotNull(petra.BestFriend);
+            Assert.IsNotNull(petra.IdentityCard);
             Assert.IsNull(clone.MarriedWith);
             Assert.IsNull(clone.BestFriend);
             Assert.IsNull(clone.IdentityCard);
             Assert.AreEqual(0, clone.OwnedHouses.Count);
             Assert.AreEqual(0, clone.CurrentOwnedVehicles.Count);
+        }
+
+        [TestMethod]
+        public void deep_clone_as_reference_and_ignore_properties_identifiers()
+        {
+            EQBPerson clone;
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.IdentityCard)
+                    .First(o => o.Name == "Petra");
+                clone = session.DeepClone(petra, o => o
+                    .ForType<EQBPerson>(t => t
+                        .ForMember(m => m.Name, opts => opts.Ignore())
+                        .CloneIdentifier(false)
+                    )
+                    .CloneIdentifier(true)
+                    .CanCloneAsReference(type => type == typeof(EQBIdentityCard))
+                    );
+
+            }
+            Assert.AreEqual(clone.Id, default(int));
+            Assert.IsNull(clone.Name);
+            Assert.AreEqual(petra.LastName, clone.LastName);
+            Assert.AreEqual(petra.IdentityCard, clone.IdentityCard);
         }
 
 
