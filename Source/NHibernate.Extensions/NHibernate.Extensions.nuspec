@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>NHibernateAsync.Extensions</id>
+    <id>NHibernateX.Extensions</id>
     <version>$version$</version>
     <authors>maca88</authors>
     <licenseUrl>https://github.com/maca88/NHibernate.Extensions/blob/master/LICENSE</licenseUrl>
@@ -11,7 +11,7 @@
     <copyright>Copyright 2016</copyright>
     <tags>NHibernate Async Include</tags>
     <dependencies>
-      <dependency id="NHibernateAsync" version="[1.1.0,2)" />
+      <dependency id="NHibernateX" version="[1.2.0.4000,2)" />
     </dependencies>
   </metadata>
 </package>
