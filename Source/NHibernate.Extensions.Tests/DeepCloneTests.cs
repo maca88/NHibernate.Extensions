@@ -32,7 +32,7 @@ namespace NHibernate.Extensions.Tests
 
             }
             Assert.AreEqual(petra.Id, clone.Id);
-            Assert.AreEqual(petra.Name, clone.Name);
+            Assert.AreEqual(null, clone.Name);
             Assert.AreEqual(petra.LastName, clone.LastName);
             Assert.IsNotNull(petra.BestFriend);
             Assert.IsNotNull(petra.IdentityCard);

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Extensions.Helpers;
@@ -121,20 +123,20 @@ namespace NHibernate.Extensions.Linq
             return newQuery;
         }
 
-        public override async Task<object> Execute(Expression expression, bool async)
+        public override async Task<object> ExecuteAsync(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
 
             if (resultVisitor.Count)
-                return await base.Execute(expression, async).ConfigureAwait(false);
+                return await base.ExecuteAsync(expression);
 
             var nhQueryable = (IQueryable) Activator.CreateInstance(typeof (NhQueryable<>).MakeGenericType(Type),
                 new DefaultQueryProvider(Session), expression);
 
             return resultVisitor.SkipTake
-                ? await ExecuteWithSubquery(nhQueryable, resultVisitor, async).ConfigureAwait(false)
-                : await ExecuteWithoutSubQuery(nhQueryable, resultVisitor, async).ConfigureAwait(false);
+                ? await ExecuteWithSubqueryAsync(nhQueryable, resultVisitor).ConfigureAwait(false)
+                : await ExecuteWithoutSubQueryAsync(nhQueryable, resultVisitor).ConfigureAwait(false);
         }
 
         public override object Execute(Expression expression)
@@ -151,16 +153,17 @@ namespace NHibernate.Extensions.Linq
             try
             {
                 return resultVisitor.SkipTake
-                    ? ExecuteWithSubquery(nhQueryable, resultVisitor, false).Result
-                    : ExecuteWithoutSubQuery(nhQueryable, resultVisitor, false).Result;
+                    ? ExecuteWithSubquery(nhQueryable, resultVisitor)
+                    : ExecuteWithoutSubQuery(nhQueryable, resultVisitor);
             }
             catch (AggregateException e)
             {
-                throw e.InnerException;
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }
+            return null;
         }
 
-        public override object ExecuteFuture(Expression expression, bool async = false)
+        public override object ExecuteFutureAsync(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
@@ -172,15 +175,20 @@ namespace NHibernate.Extensions.Linq
                 new DefaultQueryProvider(Session), expression);
 
             return resultVisitor.SkipTake
-                ? ExecuteWithSubqueryFuture(nhQueryable, resultVisitor, async)
-                : ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor, async);
+                ? ExecuteWithSubqueryFuture(nhQueryable, resultVisitor, true)
+                : ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor, true);
         }
 
         #region ExecuteWithSubquery
 
-        private Task<object> ExecuteWithSubquery(IQueryable query, IncludeRewriterVisitor visitor, bool async)
+        private Task<object> ExecuteWithSubqueryAsync(IQueryable query, IncludeRewriterVisitor visitor)
         {
-            return ExecuteQueryTree(RemoveSkipAndTake(query), visitor, async);
+            return ExecuteQueryTreeAsync(RemoveSkipAndTake(query), visitor);
+        }
+
+        private object ExecuteWithSubquery(IQueryable query, IncludeRewriterVisitor visitor)
+        {
+            return ExecuteQueryTree(RemoveSkipAndTake(query), visitor);
         }
 
         private object ExecuteWithSubqueryFuture(IQueryable query, IncludeRewriterVisitor visitor, bool async)
@@ -192,9 +200,14 @@ namespace NHibernate.Extensions.Linq
 
         #region ExecuteWithoutSubQuery
 
-        private Task<object> ExecuteWithoutSubQuery(IQueryable query, IncludeRewriterVisitor visitor, bool async)
+        private Task<object> ExecuteWithoutSubQueryAsync(IQueryable query, IncludeRewriterVisitor visitor)
         {
-            return ExecuteQueryTree(query, visitor, async);
+            return ExecuteQueryTreeAsync(query, visitor);
+        }
+
+        private object ExecuteWithoutSubQuery(IQueryable query, IncludeRewriterVisitor visitor)
+        {
+            return ExecuteQueryTree(query, visitor);
         }
 
         private object ExecuteWithoutSubQueryFuture(IQueryable query, IncludeRewriterVisitor visitor, bool async)
@@ -206,7 +219,7 @@ namespace NHibernate.Extensions.Linq
 
         #region ExecuteQueryTree
 
-        private async Task<object> ExecuteQueryTree(IQueryable query, IncludeRewriterVisitor visitor, bool async)
+        private object ExecuteQueryTree(IQueryable query, IncludeRewriterVisitor visitor)
         {
             var tree = new QueryRelationTree();
             object result = null;
@@ -218,14 +231,41 @@ namespace NHibernate.Extensions.Linq
             var leafs = tree.GetLeafs();
             leafs.Sort();
             var queries = leafs.Aggregate(new QueryInfo(query), FetchFromPath).GetQueries();
-            var toFutureMethod = async ? ToFutureAsyncMethod : ToFutureMethod;
             var i = 0;
             foreach (var q in queries)
             {
                 if (i == 0)
-                    result = toFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
+                    result = ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] { q }); //q.ToFuture();
                 else
-                    toFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
+                    ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] { q }); //q.ToFuture();
+                i++;
+            }
+            if (visitor.SingleResult)
+            {
+                return GetValue(result, visitor.SingleResultMethodName);
+            }
+            return result;
+        }
+
+        private async Task<object> ExecuteQueryTreeAsync(IQueryable query, IncludeRewriterVisitor visitor)
+        {
+            var tree = new QueryRelationTree();
+            object result = null;
+            foreach (var path in IncludePaths)
+            {
+                tree.AddNode(path);
+            }
+
+            var leafs = tree.GetLeafs();
+            leafs.Sort();
+            var queries = leafs.Aggregate(new QueryInfo(query), FetchFromPath).GetQueries();
+            var i = 0;
+            foreach (var q in queries)
+            {
+                if (i == 0)
+                    result = ToFutureAsyncMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
+                else
+                    ToFutureAsyncMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
                 i++;
             }
             if (result != null && result.GetType().IsAssignableToGenericType(typeof (IAsyncEnumerable<>)))
@@ -278,8 +318,9 @@ namespace NHibernate.Extensions.Linq
             }
             catch (TargetInvocationException e)
             {
-                throw e.InnerException;
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
             }
+            return null;
         }
 
         private IQueryable RemoveSkipAndTake(IQueryable query)
