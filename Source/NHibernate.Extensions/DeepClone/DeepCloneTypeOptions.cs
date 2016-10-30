@@ -35,15 +35,15 @@ namespace NHibernate.Extensions
         }
 
         public IDeepCloneTypeOptions<TType> ForMember<TMember>(Expression<Func<TType, TMember>> memberExpr,
-            Action<IDeepCloneMemberOptions<TType>> action)
+            Action<IDeepCloneMemberOptions<TType, TMember>> action)
         {
             var memberName = memberExpr.GetFullPropertyName();
             if (!Members.ContainsKey(memberName))
-                Members.Add(memberName, new DeepCloneMemberOptions<TType>
+                Members.Add(memberName, new DeepCloneMemberOptions<TType, TMember>
                 {
                     MemberName = memberName
                 });
-            action(Members[memberName] as IDeepCloneMemberOptions<TType>);
+            action(Members[memberName] as IDeepCloneMemberOptions<TType, TMember>);
             return this;
         }
     }

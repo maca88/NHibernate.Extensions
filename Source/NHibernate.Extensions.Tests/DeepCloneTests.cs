@@ -123,8 +123,37 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(4, clone.CurrentOwnedVehicles.First().Wheels.Count);
             Assert.AreEqual(clone.CurrentOwnedVehicles.First(), clone.CurrentOwnedVehicles.First().Wheels.First().Vehicle);
 
-            Assert.AreEqual(clone.PreviouslyOwnedVehicles.Count, 2);
+            Assert.AreEqual(2, clone.PreviouslyOwnedVehicles.Count);
             Assert.AreEqual(clone, clone.CurrentOwnedVehicles.First().CurrentOwner);
+        }
+
+        [TestMethod]
+        public void deep_clone_filter()
+        {
+            EQBPerson clone;
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .First(o => o.Name == "Petra");
+
+                clone = session.DeepClone(petra, o => o
+                    .ForType<EQBPerson>(t => t
+                    .ForMember(m => m.Name, m => m.Filter(n => n  + "2"))
+                        .ForMember(m => m.PreviouslyOwnedVehicles, m => m
+                            .Filter(col => new HashSet<EQBVehicle>(col.Take(1)))
+                        )
+                    ));
+            }
+
+            Assert.AreEqual("Petra2", clone.Name);
+            Assert.IsNull(clone.BestFriend);
+            Assert.IsNull(clone.IdentityCard);
+            Assert.IsNull(clone.MarriedWith);
+            Assert.AreEqual(0, clone.CurrentOwnedVehicles.Count);
+            Assert.AreEqual(1, clone.PreviouslyOwnedVehicles.Count);
         }
 
         [TestMethod]

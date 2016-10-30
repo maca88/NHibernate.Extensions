@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BatchFetchExtension.cs" />
     <Compile Include="DeepClone\DeepCloneMemberOptions.cs" />
     <Compile Include="DeepClone\DeepCloneOptions.cs" />
     <Compile Include="DeepClone\DeepCloneParentEntity.cs" />
@@ -76,7 +77,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryRelationNode.cs" />
     <Compile Include="QueryRelationTree.cs" />
-    <Compile Include="DeepCloneSessionExtensions.cs" />
+    <Compile Include="DeepClone\DeepCloneSessionExtension.cs" />
+    <Compile Include="Subscriptions\SessionSubscriptionExtension.cs" />
+    <Compile Include="Subscriptions\ISessionSubscription.cs" />
+    <Compile Include="Subscriptions\ITransactionSubscription.cs" />
+    <Compile Include="Subscriptions\SessionSubscription.cs" />
+    <Compile Include="Subscriptions\TransactionListener.cs" />
+    <Compile Include="Subscriptions\TransactionSubscription.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

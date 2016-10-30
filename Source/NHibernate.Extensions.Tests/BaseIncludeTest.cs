@@ -13,25 +13,6 @@ namespace NHibernate.Extensions.Tests
 {
     public class BaseIncludeTest
     {
-        protected int GetQueryCount(int index)
-        {
-            var factory = (ISessionFactoryImplementor)NHConfig.SessionFactory;
-            var match = new Regex("([0-9]+).*").Match(factory.Statistics.Queries[index]);
-            return int.Parse(match.Groups[1].Value);
-        }
-
-        protected void ClearStatistics()
-        {
-            var factory = (ISessionFactoryImplementor)NHConfig.SessionFactory;
-            factory.Statistics.Clear();
-        }
-
-        protected int GetQueriesCount()
-        {
-            var factory = (ISessionFactoryImplementor)NHConfig.SessionFactory;
-            return factory.Statistics.Queries.Length;
-        }
-
         protected void ValidateGetEntityResult(EQBPerson petra)
         {
             Assert.AreEqual(petra.BestFriend.Name, "Ana");

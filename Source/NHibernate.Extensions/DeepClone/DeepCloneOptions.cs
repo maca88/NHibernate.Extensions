@@ -103,7 +103,7 @@ namespace NHibernate.Extensions
                     .Select(o => o.Value)
                     .SelectMany(o => o.Members)
                     .Select(o => o.Value)
-                    .Where(o => o.MemberName == propName && o.IsResolveUsingSet))
+                    .Where(o => o.MemberName == propName && o.ResolveUsing != null))
                 {
                     result = memberOpt.ResolveUsing;
                 }
@@ -115,6 +115,39 @@ namespace NHibernate.Extensions
                 _cachedResolveFunctions[type].Add(propName, null);
 
             _cachedResolveFunctions[type][propName] = result;
+            return result;
+        }
+
+        private readonly Dictionary<System.Type, Dictionary<string, Func<object, object>>> _cachedFilterFunctions =
+            new Dictionary<System.Type, Dictionary<string, Func<object, object>>>();
+
+        internal Func<object, object> GetFilterFunction(System.Type type, string propName)
+        {
+            if (_cachedFilterFunctions.ContainsKey(type) && _cachedFilterFunctions[type].ContainsKey(propName))
+                return _cachedFilterFunctions[type][propName];
+
+            var pairs = TypeOptions.Where(pair => pair.Key.IsAssignableFrom(type)).ToList();
+            Func<object, object> result = null;
+            if (pairs.Any())
+            {
+                //subclasses have higher priority
+                pairs.Sort((pair, valuePair) => pair.Key.IsAssignableFrom(valuePair.Key) ? -1 : 1);
+                foreach (var memberOpt in pairs
+                    .Select(o => o.Value)
+                    .SelectMany(o => o.Members)
+                    .Select(o => o.Value)
+                    .Where(o => o.MemberName == propName && o.Filter != null))
+                {
+                    result = memberOpt.Filter;
+                }
+            }
+
+            if (!_cachedFilterFunctions.ContainsKey(type))
+                _cachedFilterFunctions.Add(type, new Dictionary<string, Func<object, object>>());
+            if (!_cachedFilterFunctions[type].ContainsKey(propName))
+                _cachedFilterFunctions[type].Add(propName, null);
+
+            _cachedFilterFunctions[type][propName] = result;
             return result;
         }
 

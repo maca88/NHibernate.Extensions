@@ -14,12 +14,12 @@ using NHibernate.Type;
 
 namespace NHibernate.Extensions
 {
-    public static class DeepCloneSessionExtensions
+    public static class DeepCloneSessionExtension
     {
         private static readonly PropertyInfo IsAlreadyDisposedPropInfo;
         private static readonly MethodInfo StatelessSessionGetMethod;
 
-        static DeepCloneSessionExtensions()
+        static DeepCloneSessionExtension()
         {
             IsAlreadyDisposedPropInfo = typeof (SessionImpl).GetProperty("IsAlreadyDisposed", BindingFlags.Instance | BindingFlags.NonPublic);
             StatelessSessionGetMethod = typeof (IStatelessSession).GetMethods()
@@ -33,6 +33,11 @@ namespace NHibernate.Extensions
             var opts = new DeepCloneOptions();
             if (optsFn != null)
                 opts = optsFn(opts);
+            return DeepClone(session, entities, opts);
+        }
+
+        public static IList<T> DeepClone<T>(this ISession session, IEnumerable<T> entities, DeepCloneOptions opts)
+        {
             var resolvedEntities = new Dictionary<object, object>();
             return entities.Select(entity => (T)DeepClone(session.GetSessionImplementation(), entity, opts, null, resolvedEntities)).ToList();
         }
@@ -42,6 +47,11 @@ namespace NHibernate.Extensions
             var opts = new DeepCloneOptions();
             if (optsAction != null)
                 opts = optsAction(opts);
+            return DeepClone(session, entity, opts);
+        }
+
+        public static T DeepClone<T>(this ISession session, T entity, DeepCloneOptions opts)
+        {
             return (T)DeepClone(session.GetSessionImplementation(), entity, opts, null, new Dictionary<object, object>());
         }
 
@@ -50,6 +60,11 @@ namespace NHibernate.Extensions
             var opts = new DeepCloneOptions();
             if (optsFn != null)
                 opts = optsFn(opts);
+            return DeepClone(session, entity, entityType, opts);
+        }
+
+        public static object DeepClone(this ISession session, object entity, System.Type entityType, DeepCloneOptions opts)
+        {
             return DeepClone(session.GetSessionImplementation(), entity, opts, entityType, new Dictionary<object, object>());
         }
 
@@ -58,6 +73,11 @@ namespace NHibernate.Extensions
             var opts = new DeepCloneOptions();
             if (optsFn != null)
                 opts = optsFn(opts);
+            return DeepClone(session, entities, opts);
+        }
+
+        public static IEnumerable DeepClone(this ISession session, IEnumerable entities, DeepCloneOptions opts)
+        {
             var collection = (IEnumerable)CreateNewCollection(entities.GetType());
             var resolvedEntities = new Dictionary<object, object>();
             foreach (var entity in entities)
@@ -76,34 +96,51 @@ namespace NHibernate.Extensions
             var opts = new DeepCloneOptions();
             if (optsFn != null)
                 opts = optsFn(opts);
+            return DeepClone(session, entities, opts);
+        }
+
+        public static IList<T> DeepClone<T>(this IStatelessSession session, IEnumerable<T> entities, DeepCloneOptions opts)
+        {
             var resolvedEntities = new Dictionary<object, object>();
             return entities.Select(entity => (T)DeepClone(session.GetSessionImplementation(), entity, opts, null, resolvedEntities)).ToList();
         }
-
 
         public static T DeepClone<T>(this IStatelessSession session, T entity, Func<DeepCloneOptions, DeepCloneOptions> optsFn = null)
         {
             var opts = new DeepCloneOptions();
             if (optsFn != null)
                 opts = optsFn(opts);
-            return (T)DeepClone(session.GetSessionImplementation(), entity, opts, null, new Dictionary<object, object>());
+            return DeepClone(session, entity, opts);
         }
 
+        public static T DeepClone<T>(this IStatelessSession session, T entity, DeepCloneOptions opts)
+        {
+            return (T)DeepClone(session.GetSessionImplementation(), entity, opts, null, new Dictionary<object, object>());
+        }
 
         public static object DeepClone(this IStatelessSession session, object entity, System.Type entityType = null, Func<DeepCloneOptions, DeepCloneOptions> optsFn = null)
         {
             var opts = new DeepCloneOptions();
             if (optsFn != null)
                 opts = optsFn(opts);
-            return DeepClone(session.GetSessionImplementation(), entity, opts, entityType, new Dictionary<object, object>());
+            return DeepClone(session, entity, entityType, opts);
         }
 
+        public static object DeepClone(this IStatelessSession session, object entity, System.Type entityType, DeepCloneOptions opts)
+        {
+            return DeepClone(session.GetSessionImplementation(), entity, opts, entityType, new Dictionary<object, object>());
+        }
 
         public static IEnumerable DeepClone(this IStatelessSession session, IEnumerable entities, Func<DeepCloneOptions, DeepCloneOptions> optsFn = null)
         {
             var opts = new DeepCloneOptions();
             if (optsFn != null)
                 opts = optsFn(opts);
+            return DeepClone(session, entities, opts);
+        }
+
+        public static IEnumerable DeepClone(this IStatelessSession session, IEnumerable entities, DeepCloneOptions opts)
+        {
             var collection = (IEnumerable)CreateNewCollection(entities.GetType());
             var resolvedEntities = new Dictionary<object, object>();
             foreach (var entity in entities)
@@ -126,10 +163,10 @@ namespace NHibernate.Extensions
                 .Where(p => !opts.GetIgnoreMembers(entityType).Contains(p.Name))
                 .Where(p => p.GetSetMethod(true) != null))
             {
-                IType entityPropertyType;
+                IType propertyType;
                 try
                 {
-                    entityPropertyType = entityMetadata.GetPropertyType(propertyInfo.Name);
+                    propertyType = entityMetadata.GetPropertyType(propertyInfo.Name);
                 }
                 catch (Exception)
                 {
@@ -142,7 +179,7 @@ namespace NHibernate.Extensions
                     continue;
 
                 var colNames = entityMetadata.GetPropertyColumnNames(propertyInfo.Name);
-                if (!entityPropertyType.IsEntityType) continue;
+                if (!propertyType.IsEntityType) continue;
                 //Check if we have a parent entity and that is bidirectional related to the current property (one-to-many)
                 if (parentEntity.ReferencedColumns.SequenceEqual(colNames))
                 {
@@ -200,10 +237,10 @@ namespace NHibernate.Extensions
                 .Where(p => !opts.GetIgnoreMembers(entityType).Contains(p.Name))
                 .Where(p => p.GetSetMethod(true) != null))
             {
-                IType entityPropertyType;
+                IType propertyType;
                 try
                 {
-                    entityPropertyType = entityMetadata.GetPropertyType(propertyInfo.Name);
+                    propertyType = entityMetadata.GetPropertyType(propertyInfo.Name);
                 }
                 catch (Exception)
                 {
@@ -217,7 +254,7 @@ namespace NHibernate.Extensions
                     continue;
                 }
 
-                if (entityPropertyType.IsEntityType && opts.SkipEntityTypesValue.HasValue && opts.SkipEntityTypesValue.Value)
+                if (propertyType.IsEntityType && opts.SkipEntityTypesValue.HasValue && opts.SkipEntityTypesValue.Value)
                     continue;
 
                 //TODO: verify: false only when entity is a proxy or lazy field/property that is not yet initialized
@@ -241,10 +278,14 @@ namespace NHibernate.Extensions
                     continue;
                 }
 
+                var filterFn = opts.GetFilterFunction(entityType, propertyInfo.Name);
+                if (filterFn != null)
+                    propertyValue = filterFn(propertyValue);
+
                 var colNames = entityMetadata.GetPropertyColumnNames(propertyInfo.Name);
                 var propType = propertyInfo.PropertyType;
                 var copyAsReference = opts.CanCloneAsReference(entityType, propertyInfo.Name);
-                if (entityPropertyType.IsCollectionType)
+                if (propertyType.IsCollectionType)
                 {
                     var propertyList = CreateNewCollection(propType);
                     propertyInfo.SetValue(copiedEntity, propertyList, null);
@@ -255,12 +296,12 @@ namespace NHibernate.Extensions
                             {
                                 Entity = copiedEntity,
                                 EntityPersister = entityMetadata,
-                                ChildType = entityPropertyType,
-                                ReferencedColumns = ((CollectionType)entityPropertyType)
+                                ChildType = propertyType,
+                                ReferencedColumns = ((CollectionType)propertyType)
                                     .GetReferencedColumns(session.Factory)
                             }));
                 }
-                else if (entityPropertyType.IsEntityType)
+                else if (propertyType.IsEntityType)
                 {
                     if (copyAsReference)
                         propertyInfo.SetValue(copiedEntity, propertyValue, null);
@@ -294,29 +335,29 @@ namespace NHibernate.Extensions
             return propertyList;
         }
 
-        private static void AddItemToCollection(object collection, object item, Func<object, object> editBeforeAdding = null)
+        private static void AddItemToCollection(object newCollection, object collection, Func<object, object> editBeforeAdding = null)
         {
-            var addMethod = collection.GetType().GetInterfaces()
+            var addMethod = newCollection.GetType().GetInterfaces()
                         .SelectMany(o => o.GetMethods())
                         .First(o => o.Name == "Add");
 
-            var itemColl = item as IEnumerable;
-            if (itemColl != null)
+            var enumerable = collection as IEnumerable;
+            if (enumerable != null)
             {
-                foreach (var colItem in itemColl)
+                foreach (var item in enumerable)
                 {
-                    addMethod.Invoke(collection,
+                    addMethod.Invoke(newCollection,
                                      editBeforeAdding != null
-                                     ? new[] { editBeforeAdding(colItem) }
-                                     : new[] { colItem });
+                                     ? new[] { editBeforeAdding(item) }
+                                     : new[] { item });
                 }
             }
             else
             {
-                addMethod.Invoke(collection,
+                addMethod.Invoke(newCollection,
                                      editBeforeAdding != null
-                                     ? new[] { editBeforeAdding(item) }
-                                     : new[] { item });
+                                     ? new[] { editBeforeAdding(collection) }
+                                     : new[] { collection });
             }
         }
 

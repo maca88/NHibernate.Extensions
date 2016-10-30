@@ -163,6 +163,22 @@ namespace NHibernate.Extensions.Linq
             return null;
         }
 
+        public override object ExecuteFuture(Expression expression)
+        {
+            var resultVisitor = new IncludeRewriterVisitor();
+            expression = resultVisitor.Modify(expression);
+
+            //if (resultVisitor.Count)
+            //	return await base.Execute(expression, async);
+
+            var nhQueryable = (IQueryable)Activator.CreateInstance(typeof(NhQueryable<>).MakeGenericType(Type),
+                new DefaultQueryProvider(Session), expression);
+
+            return resultVisitor.SkipTake
+                ? ExecuteWithSubqueryFuture(nhQueryable, resultVisitor, false)
+                : ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor, false);
+        }
+
         public override object ExecuteFutureAsync(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();

@@ -192,7 +192,7 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
-        public void using_tofutorevalue_method_without_getting_value()
+        public void using_to_future_value_method_without_getting_value()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
@@ -214,7 +214,7 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
-        public async Task using_tofutorevalue_async_method_without_getting_value()
+        public async Task using_to_future_value_async_method_without_getting_value()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
@@ -260,17 +260,18 @@ namespace NHibernate.Extensions.Tests
         public void test_selectmany()
         {
             IPerson petra;
-            ClearStatistics();
             /*Without parameter*/
             using (var session = NHConfig.OpenSession())
             {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
                 var query = session.Query<EQBIdentityCard>()
                     .Where(o => o.Code == "SD")
                     .Fetch(o => o.Owner).ThenFetch(o => o.BestFriend).ThenFetch(o => o.MarriedWith)
                     //.Select(o => o.Owner)
                     .ToList();
 
-                Assert.AreEqual(1, GetQueryCount(0));
+                Assert.AreEqual(1, stats.PrepareStatementCount);
             }
             //Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
@@ -300,14 +301,16 @@ namespace NHibernate.Extensions.Tests
         public void test_include_with_interface()
         {
             EQBPerson petra;
-            ClearStatistics();
             /*Without parameter*/
             using (var session = NHConfig.OpenSession())
             {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
                 petra = session.Query<EQBPerson>()
                     .Include(o => o.CreatedBy)
                     .Single(o => o.Name == "Petra");
-                Assert.AreEqual(1, GetQueryCount(0));
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
@@ -316,16 +319,18 @@ namespace NHibernate.Extensions.Tests
         public void test_cast_to_base_type()
         {
             IPerson petra;
-            ClearStatistics();
             /*Without parameter*/
             using (var session = NHConfig.OpenSession())
             {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
                 var query = session.Query<EQBPerson>() as IQueryable<IPerson>;
                 petra = query
                     .Include("CreatedBy")
                     .Where(o => o.Name == "Petra")
                     .First();
-                Assert.AreEqual(1, GetQueryCount(0));
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
             Assert.IsNotNull(petra);
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
@@ -335,16 +340,18 @@ namespace NHibernate.Extensions.Tests
         public async Task test_cast_to_base_type_async()
         {
             IPerson petra;
-            ClearStatistics();
             /*Without parameter*/
             using (var session = NHConfig.OpenSession())
             {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
                 var query = session.Query<EQBPerson>() as IQueryable<IPerson>;
                 petra = await query
                     .Include("CreatedBy")
                     .Where(o => o.Name == "Petra")
                     .FirstAsync();
-                Assert.AreEqual(1, GetQueryCount(0));
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
             Assert.IsNotNull(petra);
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
@@ -354,16 +361,18 @@ namespace NHibernate.Extensions.Tests
         public void test_cast_to_base_type_relation()
         {
             IPerson petra;
-            ClearStatistics();
             /*Without parameter*/
             using (var session = NHConfig.OpenSession())
             {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
                 var query = session.Query<EQBPerson>()
                     .Where(o => o.Name == "Petra") as IQueryable;
                 petra = query
                     .Include("CurrentOwnedVehicles")
                     .ToList<IPerson>().First();
-                Assert.AreEqual(1, GetQueryCount(0));
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
             Assert.AreEqual(petra.CurrentOwnedVehicles.Any(), true);
         }
@@ -372,272 +381,30 @@ namespace NHibernate.Extensions.Tests
         public void test_include_with_collection()
         {
             EQBPerson petra;
-            ClearStatistics();
             /*Without parameter*/
             using (var session = NHConfig.OpenSession())
             {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
                 petra = session.Query<EQBPerson>()
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Single(o => o.Name == "Petra");
-                Assert.AreEqual(1, GetQueryCount(0));
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
         }
 
+        #region FutureValue
+
         [TestMethod]
-        public void get_single_result_without_skip_or_take()
+        public void get_single_result_without_skip_or_take_with_future_value()
         {
             EQBPerson petra;
 
-            /*NHibernate way*/
             using (var session = NHConfig.OpenSession())
             {
-                session.Query<EQBPerson>()
-                    .Fetch(o => o.BestFriend)
-                    .ThenFetch(o => o.IdentityCard)
-                    .Fetch(o => o.BestFriend)
-                    .ThenFetch(o => o.BestFriend)
-                    .ThenFetch(o => o.BestFriend)
-                    .ThenFetch(o => o.BestFriend)
-                    .FetchMany(o => o.CurrentOwnedVehicles)
-                    .ThenFetchMany(o => o.Wheels)
-                    .Fetch(o => o.DrivingLicence)
-                    .Fetch(o => o.CreatedBy)
-                    .Fetch(o => o.IdentityCard)
-                    .Fetch(o => o.MarriedWith)
-                    .Where(o => o.Name == "Petra")
-                    .ToFuture();
-                session.Query<EQBPerson>()
-                    .FetchMany(o => o.OwnedHouses)
-                    .Where(o => o.Name == "Petra")
-                    .ToFuture();
-                petra = session.Query<EQBPerson>()
-                    .FetchMany(o => o.PreviouslyOwnedVehicles)
-                    .Where(o => o.Name == "Petra")
-                    .ToFutureValue().Value;
-
-                //Assert.AreEqual(1, GetQueryCount(0));
-            }
-            ValidateGetEntityResult(petra);
-
-            #region SingleOrDefault
-
-            /*Without parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Where(o => o.Name == "Petra")
-                    .SingleOrDefault();
-
-                //Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            /*With parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .SingleOrDefault(o => o.Name == "Petra");
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            #endregion
-
-            #region Single
-
-            /*Without parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Where(o => o.Name == "Petra")
-                    .Single();
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            /*With parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Single(o => o.Name == "Petra");
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            #endregion
-
-            #region FirstOrDefault
-
-            /*Without parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Where(o => o.Name == "Petra")
-                    .FirstOrDefault();
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            /*With parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .FirstOrDefault(o => o.Name == "Petra");
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            #endregion
-
-            #region First
-
-            /*Without parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Where(o => o.Name == "Petra")
-                    .First();
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            /*With parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .First(o => o.Name == "Petra");
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            #endregion
-
-            #region LastOrDefault
-
-            /*Without parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Where(o => o.Name == "Petra")
-                    .LastOrDefault();
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            /*With parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .LastOrDefault(o => o.Name == "Petra");
-
-                Assert.AreEqual(1, GetQueriesCount());
-            }
-            ValidateGetEntityResult(petra);
-
-            #endregion
-
-            #region ToFutureValue
-
-            using (var session = NHConfig.OpenSession())
-            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
                 var future = session.Query<EQBPerson>()
                     .Include(o => o.BestFriend.IdentityCard)
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
@@ -651,11 +418,326 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .ToFutureValue();
                 petra = future.Value;
-                //Assert.AreEqual(1, GetQueriesCount());
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
-
-            #endregion
         }
+
+        [TestMethod]
+        public async Task get_single_result_without_skip_or_take_with_future_value_async()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                var future = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .ToFutureValueAsync();
+                petra = await future.GetValue();
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        #endregion
+
+        #region SingleOrDefault
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_single_or_default()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .SingleOrDefault();
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_single_or_default_with_parameter()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .SingleOrDefault(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        #endregion
+
+        #region Single
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_single()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .Single();
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_single_with_parameter()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Single(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        #endregion
+
+        #region FirstOrDefault
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_first_or_default()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .FirstOrDefault();
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_first_or_default_with_parameter()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .FirstOrDefault(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        #endregion
+
+        #region First
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_first()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .First();
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_first_with_parameter()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .First(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        #endregion
+
+        #region LastOrDefault
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_last_or_default()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .LastOrDefault();
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_last_or_default_with_parameter()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .LastOrDefault(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        #endregion
+
     }
 }

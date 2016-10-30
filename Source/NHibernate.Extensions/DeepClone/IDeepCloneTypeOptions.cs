@@ -13,6 +13,6 @@ namespace NHibernate.Extensions
         IDeepCloneTypeOptions<TType> CloneIdentifier(bool value);
 
         IDeepCloneTypeOptions<TType> ForMember<TMember>(Expression<Func<TType, TMember>> memberExpr,
-            Action<IDeepCloneMemberOptions<TType>> action);
+            Action<IDeepCloneMemberOptions<TType, TMember>> action);
     }
 }
