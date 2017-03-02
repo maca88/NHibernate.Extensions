@@ -69,11 +69,6 @@ namespace NHibernate.Linq
             return query;
         }
 
-        public static IQueryable Where(this IQueryable query, string predicate, params object[] values)
-        {
-            return DynamicQueryable.Where(query, predicate, values);
-        }
-
         private static IEnumerable ToList(this IQueryable query)
         {
             var type = query.GetType().GetGenericArguments()[0];
