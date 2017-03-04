@@ -2,11 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic;
 using System.Linq.Expressions;
 using System.Reflection;
 using NHibernate.Engine;
-using NHibernate.Extensions.Helpers;
+using NHibernate.Extensions.Internal;
 using NHibernate.Extensions.Linq;
 using Remotion.Linq;
 
@@ -14,13 +13,10 @@ namespace NHibernate.Linq
 {
     public static class LinqExtensions
     {
-        private static readonly FieldInfo QueryProvider;
         private static readonly PropertyInfo SessionPropertyInfo;
 
         static LinqExtensions()
         {
-            QueryProvider = typeof (QueryableBase<>).GetField("_queryProvider",
-                BindingFlags.NonPublic | BindingFlags.Instance);
             SessionPropertyInfo = typeof (DefaultQueryProvider).GetProperty("Session",
                 BindingFlags.NonPublic | BindingFlags.Instance);
         }
@@ -39,6 +35,13 @@ namespace NHibernate.Linq
             return query;
         }
 
+        public static IIncludeQueryable<TChild, T> Include<T, TChild>(this IQueryable<T> query, Expression<Func<T, IEnumerable<TChild>>> include)
+        {
+            var path = ExpressionHelper.GetFullPath(include.Body);
+            Include(query, path);
+            return new IncludeRequest<TChild,T>(path, query.Provider, query.Expression);
+        }
+
         public static IQueryable<T> Include<T>(this IQueryable<T> query, string path)
         {
             Include((IQueryable)query, path);
@@ -48,7 +51,8 @@ namespace NHibernate.Linq
         public static IQueryable Include(this IQueryable query, string path)
         {
             var queryType = query.GetType();
-            if (!TypeHelper.IsSubclassOfRawGeneric(typeof(NhQueryable<>), queryType))
+            queryType = queryType.GetGenericType(typeof(QueryableBase<>));
+            if (queryType == null)
                 throw new Exception("Include function is supported only for Nhibernate queries");
 
             var itemType = queryType.GetGenericArguments()[0];

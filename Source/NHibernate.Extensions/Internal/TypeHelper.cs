@@ -2,9 +2,9 @@
 using NHibernate.Proxy;
 using NHibernate.Proxy.DynamicProxy;
 
-namespace NHibernate.Extensions.Helpers
+namespace NHibernate.Extensions.Internal
 {
-    public static class TypeHelper
+    internal static class TypeHelper
     {
         public static bool IsSubclassOfRawGeneric(System.Type generic, System.Type toCheck)
         {
@@ -47,5 +47,5 @@ namespace NHibernate.Extensions.Helpers
 
             return persistentObject.GetType();
         }
-    }
+	}
 }

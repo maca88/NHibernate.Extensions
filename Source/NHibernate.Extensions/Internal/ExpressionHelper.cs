@@ -2,9 +2,9 @@
 using System.Linq.Expressions;
 using NHibernate.Util;
 
-namespace NHibernate.Extensions.Helpers
+namespace NHibernate.Extensions.Internal
 {
-    public static class ExpressionHelper
+    internal static class ExpressionHelper
     {
         public static string GetFullPath(Expression expression)
         {

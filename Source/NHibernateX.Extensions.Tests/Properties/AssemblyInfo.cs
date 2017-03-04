@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("NHibernate.Extensions.Tests")]
+[assembly: AssemblyTitle("NHibernateX.Extensions.Tests")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("NHibernate.Extensions.Tests")]
+[assembly: AssemblyProduct("NHibernateX.Extensions.Tests")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("ce4f2ee0-029b-44d8-a2c0-0936b51bdb3e")]
+[assembly: Guid("6a0c0c92-d698-482d-95a4-d9977c5647d6")]
 
 // Version information for an assembly consists of the following four values:
 //

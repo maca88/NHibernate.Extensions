@@ -1,6 +1,6 @@
 ﻿namespace NHibernate.Extensions.Tests.Entities
 {
-    public partial class EQBIdentity : Entity
+    public partial class EQBIdentityCard : Entity
     {
         public virtual string Code { get; set; }
 

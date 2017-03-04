@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace NHibernate.Extensions.Linq
 {
-    public class SkipTakeVisitor : ExpressionVisitor
+    internal class SkipTakeVisitor : ExpressionVisitor
     {
         public static readonly HashSet<string> SkipTakeMethods = new HashSet<string>
         {

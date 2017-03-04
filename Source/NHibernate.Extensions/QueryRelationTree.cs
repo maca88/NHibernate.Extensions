@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using NHibernate.Extensions.Helpers;
+using NHibernate.Extensions.Internal;
 
 namespace NHibernate.Extensions
 {
@@ -53,14 +53,14 @@ namespace NHibernate.Extensions
                 else
                 {
                     var lst = result[idx].Last();
-                    if (node.FullPath.StartsWith(lst))
+                    var relPaths = node.FullPath.Split('.');
+                    if (relPaths[0] == lst)
                         result[idx].Add(node.FullPath);
                     else
                     {
                         idx++;
                         result.Add(idx, new List<string>());
-                        var relPaths = node.FullPath.Split('.').ToList();
-                        for (var i = 1; i <= relPaths.Count; i++)
+                        for (var i = 1; i <= relPaths.Length; i++)
                         {
                             result[idx].Add(string.Join(".", relPaths.Take(i)));
                         }

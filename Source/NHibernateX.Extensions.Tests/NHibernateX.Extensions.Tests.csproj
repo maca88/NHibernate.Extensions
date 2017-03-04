@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DC0789BE-E6C7-4F62-9B97-4D6F1343FE2F}</ProjectGuid>
+    <ProjectGuid>{6A0C0C92-D698-482D-95A4-D9977C5647D6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NHibernate.Extensions.Tests</RootNamespace>
-    <AssemblyName>NHibernate.Extensions.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <RootNamespace>NHibernateX.Extensions.Tests</RootNamespace>
+    <AssemblyName>NHibernateX.Extensions.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -16,50 +16,45 @@
     <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NHX</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NHX</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FluentNHibernate, Version=2.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentNHibernate.2.0.3.0\lib\net40\FluentNHibernate.dll</HintPath>
+    <Reference Include="FluentNHibernate, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentNHibernateX.1.2.0-Alpha1\lib\net45\FluentNHibernate.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="HibernatingRhinos.Profiler.Appender">
       <HintPath>..\packages\NHProf\HibernatingRhinos.Profiler.Appender.dll</HintPath>
     </Reference>
     <Reference Include="Iesi.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Iesi.Collections.4.0.1.4000\lib\net40\Iesi.Collections.dll</HintPath>
+      <HintPath>..\packages\Iesi.Collections.4.0.0.4000\lib\net40\Iesi.Collections.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="NHibernate, Version=4.1.0.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
-      <HintPath>..\packages\NHibernate.4.1.1.4000\lib\net40\NHibernate.dll</HintPath>
+    <Reference Include="NHibernate, Version=4.1.0.1001, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <HintPath>..\packages\NHibernateX.2.0.0-Alpha1\lib\net40\NHibernate.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    <Reference Include="System.Interactive.Async, Version=3.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Interactive.Async.3.0.0\lib\net45\System.Interactive.Async.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -74,31 +69,77 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="BaseIncludeTest.cs" />
-    <Compile Include="BatchFetchTests.cs" />
-    <Compile Include="CascadeConvention.cs" />
-    <Compile Include="DeepCloneTests.cs" />
-    <Compile Include="Entities\BatchModel.cs" />
-    <Compile Include="Entities\EQBIdentity.cs" />
-    <Compile Include="Entities\EQBUser.cs" />
-    <Compile Include="Entities\IUser.cs" />
-    <Compile Include="Entities\EQBDrivingLicence.cs" />
-    <Compile Include="Entities\EQBHouse.cs" />
-    <Compile Include="Entities\EQBIdentityCard.cs" />
-    <Compile Include="Entities\EQBPerson.cs" />
-    <Compile Include="Entities\EQBVehicle.cs" />
-    <Compile Include="Entities\TestEQBWheel.cs" />
-    <Compile Include="IEntity.cs" />
-    <Compile Include="LinqIncludeTests.cs" />
-    <Compile Include="NHConfig.cs" />
+    <Compile Include="..\NHibernate.Extensions.Tests\BaseIncludeTest.cs">
+      <Link>BaseIncludeTest.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\BatchFetchTests.cs">
+      <Link>BatchFetchTests.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\CascadeConvention.cs">
+      <Link>CascadeConvention.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\DeepCloneTests.cs">
+      <Link>DeepCloneTests.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\BatchModel.cs">
+      <Link>Entities\BatchModel.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\EQBDrivingLicence.cs">
+      <Link>Entities\EQBDrivingLicence.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\EQBHouse.cs">
+      <Link>Entities\EQBHouse.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\EQBIdentity.cs">
+      <Link>Entities\EQBIdentity.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\EQBIdentityCard.cs">
+      <Link>Entities\EQBIdentityCard.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\EQBPerson.cs">
+      <Link>Entities\EQBPerson.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\EQBUser.cs">
+      <Link>Entities\EQBUser.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\EQBVehicle.cs">
+      <Link>Entities\EQBVehicle.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\IUser.cs">
+      <Link>Entities\IUser.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\Entities\TestEQBWheel.cs">
+      <Link>Entities\TestEQBWheel.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\IEntity.cs">
+      <Link>IEntity.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\LinqIncludeTests.cs">
+      <Link>LinqIncludeTests.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\NHConfig.cs">
+      <Link>NHConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\QueryRelationTreeTests.cs">
+      <Link>QueryRelationTreeTests.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\SessionSubscriptionTests.cs">
+      <Link>SessionSubscriptionTests.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions.Tests\TestBase.cs">
+      <Link>TestBase.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QueryRelationTreeTests.cs" />
-    <Compile Include="SessionSubscriptionTests.cs" />
-    <Compile Include="TestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NHibernateX.Extensions\NHibernateX.Extensions.csproj">
+      <Project>{99437f2a-5b2b-47c8-a4af-af34935a7b8d}</Project>
+      <Name>NHibernateX.Extensions</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Test.ldf">
@@ -108,15 +149,6 @@
     <Content Include="Test.mdf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\NHibernate.Extensions\NHibernate.Extensions.csproj">
-      <Project>{ece5fa2c-a6b7-4577-ad3c-dd13098fce37}</Project>
-      <Name>NHibernate.Extensions</Name>
-    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

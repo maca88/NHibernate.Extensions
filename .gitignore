@@ -5,3 +5,8 @@ Source/NHibernate.Extensions/bin/*
 Source/NHibernate.Extensions/obj/*
 Source/packages/*
 *.user
+Source/NHibernateX.Extensions.Tests/bin/
+Source/NHibernateX.Extensions.Tests/obj/
+Source/NHibernateX.Extensions/obj/
+Source/NHibernateX.Extensions/bin/
+Source/TestResults/

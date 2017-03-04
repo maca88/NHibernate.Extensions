@@ -1,19 +1,17 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>NHibernate.Extensions</id>
-    <version>1.0.1</version>
-    <authors>Maca88</authors>
-    <owners>Maca88</owners>
+    <id>NHibernateX.Extensions</id>
+    <version>$version$-Alpha1</version>
+    <authors>maca88</authors>
     <licenseUrl>https://github.com/maca88/NHibernate.Extensions/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/maca88/NHibernate.Extensions</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Additional features for NHibernate like Include for Linq provider</description>
-    <releaseNotes></releaseNotes>
-    <copyright>Copyright 2015</copyright>
-    <tags>NHibernate Include</tags>
+    <description>Various additions for NHibernateX like the Include method from EntityFramework</description>
+    <copyright>Copyright 2016</copyright>
+    <tags>NHibernateX Async Include</tags>
     <dependencies>
-      <dependency id="NHibernate" version="4.0.3.4000" />
+      <dependency id="NHibernateX" version="[2.0-Alpha1]" />
     </dependencies>
   </metadata>
 </package>
