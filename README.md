@@ -11,7 +11,7 @@ Is an extension method for Linq used to eager load entity relations without worr
 var people = session.Query<EQBPerson>()
 	.Include(o => o.BestFriend.IdentityCard) /* nested many to one relations */
 	.Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend) /* nested many to one relations */
-	.Include(o => o.CurrentOwnedVehicles.First().Wheels) /* nested one to many relations */
+	.Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.Wheels) /* nested one to many relations */
 	.Include(o => o.DrivingLicence) /* many to one relation */
 	.Include(o => o.IdentityCard) /* many to one relation */
 	.Include(o => o.MarriedWith) /* many to one relation */
