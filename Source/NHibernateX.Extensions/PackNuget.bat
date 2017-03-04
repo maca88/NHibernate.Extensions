@@ -1,0 +1,1 @@
+..\.nuget\nuget.exe pack NHibernateX.Extensions.csproj -Prop Configuration=Release

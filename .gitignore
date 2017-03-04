@@ -10,3 +10,4 @@ Source/NHibernateX.Extensions.Tests/obj/
 Source/NHibernateX.Extensions/obj/
 Source/NHibernateX.Extensions/bin/
 Source/TestResults/
+*.nupkg

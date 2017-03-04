@@ -52,14 +52,16 @@ namespace NHibernate.Extensions
                 }
                 else
                 {
-                    var lst = result[idx].Last();
-                    var relPaths = node.FullPath.Split('.');
-                    if (relPaths[0] == lst)
+                    var lst = result[idx].Last() + ".";
+                    if (node.FullPath.StartsWith(lst))
+                    {
                         result[idx].Add(node.FullPath);
+                    }
                     else
                     {
                         idx++;
                         result.Add(idx, new List<string>());
+                        var relPaths = node.FullPath.Split('.');
                         for (var i = 1; i <= relPaths.Length; i++)
                         {
                             result[idx].Add(string.Join(".", relPaths.Take(i)));
