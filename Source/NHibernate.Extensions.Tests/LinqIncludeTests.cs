@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
@@ -65,6 +66,7 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
+#if NHX
         [TestMethod]
         public async Task using_skip_and_take_async()
         {
@@ -85,6 +87,7 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(4, test.Count);
             }
         }
+#endif
 
         [TestMethod]
         public void using_count_method()
@@ -137,6 +140,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NHX
         [TestMethod]
         public async Task using_async_count_method()
         {
@@ -159,9 +163,14 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(4, people.Count);
             }
         }
+#endif
 
         [TestMethod]
+#if NHX
         [ExpectedException(typeof (InvalidOperationException))]
+#else
+        [ExpectedException(typeof(TargetInvocationException))]
+#endif
         public void using_single_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -181,7 +190,11 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+#if NHX
         [ExpectedException(typeof (InvalidOperationException))]
+#else
+        [ExpectedException(typeof(TargetInvocationException))]
+#endif
         public void using_first_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -200,6 +213,7 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
+#if NHX
         [TestMethod]
         [ExpectedException(typeof (InvalidOperationException))]
         public async Task using_first_async_method_for_retriving_a_person_that_dont_exists()
@@ -219,6 +233,7 @@ namespace NHibernate.Extensions.Tests
                     .FirstAsync(o => o.Name == "Test");
             }
         }
+#endif
 
         [TestMethod]
         public void using_to_future_value_method_without_getting_value()
@@ -242,6 +257,7 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
+#if NHX
         [TestMethod]
         public async Task using_to_future_value_async_method_without_getting_value()
         {
@@ -263,6 +279,7 @@ namespace NHibernate.Extensions.Tests
             }
             Assert.IsNull(test);
         }
+#endif
 
         [TestMethod]
         public void using_tofutorevalue_method_for_retriving_a_person_that_dont_exists()
@@ -305,6 +322,7 @@ namespace NHibernate.Extensions.Tests
             //Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
 
+#if NHX
         [TestMethod]
         public async Task using_tofutorevalue_async_method_for_retriving_a_person_that_dont_exists()
         {
@@ -325,6 +343,7 @@ namespace NHibernate.Extensions.Tests
             }
             Assert.IsNull(test);
         }
+#endif
 
         [TestMethod]
         public void test_include_with_interface()
@@ -365,6 +384,7 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
 
+#if NHX
         [TestMethod]
         public async Task test_cast_to_base_type_async()
         {
@@ -385,6 +405,7 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNotNull(petra);
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
+#endif
 
         [TestMethod]
         public void test_cast_to_base_type_relation()
@@ -423,7 +444,7 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        #region FutureValue
+#region FutureValue
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_future_value()
@@ -453,6 +474,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_future_value_async()
         {
@@ -480,10 +502,11 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
-        #endregion
+#endregion
 
-        #region SingleOrDefault
+#region SingleOrDefault
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_single_or_default()
@@ -512,6 +535,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_single_or_default_async()
         {
@@ -564,10 +588,10 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
+#endregion
 
-        #endregion
-
-        #region Single
+#region Single
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_single()
@@ -596,6 +620,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_single_async()
         {
@@ -617,32 +642,6 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Where(o => o.Name == "Petra")
                     .SingleAsync();
-                Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
-            }
-            ValidateGetEntityResult(petra);
-        }
-
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_single_with_parameter()
-        {
-            EQBPerson petra;
-
-            using (var session = NHConfig.OpenSession())
-            {
-                var stats = session.SessionFactory.Statistics;
-                stats.Clear();
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Single(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
                 Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
             }
@@ -674,10 +673,37 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
-        #endregion
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_single_with_parameter()
+        {
+            EQBPerson petra;
 
-        #region FirstOrDefault
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Single(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+#endregion
+
+#region FirstOrDefault
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_first_or_default()
@@ -706,6 +732,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_first_or_default_async()
         {
@@ -727,32 +754,6 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Where(o => o.Name == "Petra")
                     .FirstOrDefaultAsync();
-                Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
-            }
-            ValidateGetEntityResult(petra);
-        }
-
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_first_or_default_with_parameter()
-        {
-            EQBPerson petra;
-
-            using (var session = NHConfig.OpenSession())
-            {
-                var stats = session.SessionFactory.Statistics;
-                stats.Clear();
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .FirstOrDefault(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
                 Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
             }
@@ -784,10 +785,37 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
-        #endregion
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_first_or_default_with_parameter()
+        {
+            EQBPerson petra;
 
-        #region First
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .FirstOrDefault(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+#endregion
+
+#region First
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_first()
@@ -816,6 +844,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_first_async()
         {
@@ -837,32 +866,6 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Where(o => o.Name == "Petra")
                     .FirstAsync();
-                Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
-            }
-            ValidateGetEntityResult(petra);
-        }
-
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_first_with_parameter()
-        {
-            EQBPerson petra;
-
-            using (var session = NHConfig.OpenSession())
-            {
-                var stats = session.SessionFactory.Statistics;
-                stats.Clear();
-                petra = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.CreatedBy)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .First(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
                 Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
             }
@@ -894,10 +897,37 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
-        #endregion
+        [TestMethod]
+        public void get_single_result_without_skip_or_take_with_first_with_parameter()
+        {
+            EQBPerson petra;
 
-        #region LastOrDefault
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .First(o => o.Name == "Petra");
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+#endregion
+
+#region LastOrDefault
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_last_or_default()
@@ -952,7 +982,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        #endregion
+#endregion
 
     }
 }

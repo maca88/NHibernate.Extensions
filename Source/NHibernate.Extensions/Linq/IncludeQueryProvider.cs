@@ -26,9 +26,11 @@ namespace NHibernate.Extensions.Linq
         protected static readonly MethodInfo ContainsMethod;
         protected static readonly MethodInfo ToFutureMethod;
         protected static readonly MethodInfo ToFutureValueMethod;
+#if NHX
         protected static readonly MethodInfo ToFutureAsyncMethod;
         protected static readonly MethodInfo ToFutureValueAsyncMethod;
         protected static readonly MethodInfo ToListAsyncMethod;
+#endif
 
         static IncludeQueryProvider()
         {
@@ -50,15 +52,17 @@ namespace NHibernate.Extensions.Linq
             ToFutureValueMethod =
                 typeof (LinqExtensionMethods).GetMethods()
                     .First(o => o.Name == "ToFutureValue" && o.GetParameters().Length == 1);
-            ToFutureAsyncMethod = typeof (LinqExtensionMethods).GetMethods().First(o => o.Name == "ToFutureAsync");
-            ToFutureValueAsyncMethod =
-                typeof (LinqExtensionMethods).GetMethods()
-                    .First(o => o.Name == "ToFutureValueAsync" && o.GetParameters().Length == 1);
             SelectMethod = typeof (Queryable).GetMethods().First(o => o.Name == "Select");
             WhereMethod = typeof (Queryable).GetMethods().First(o => o.Name == "Where");
             ContainsMethod = typeof (Queryable).GetMethods().First(o => o.Name == "Contains");
+#if NHX
+            ToFutureAsyncMethod = typeof(LinqExtensionMethods).GetMethods().First(o => o.Name == "ToFutureAsync");
+            ToFutureValueAsyncMethod =
+                typeof(LinqExtensionMethods).GetMethods()
+                    .First(o => o.Name == "ToFutureValueAsync" && o.GetParameters().Length == 1);
             ToListAsyncMethod =
                 typeof (AsyncEnumerable).GetMethods().First(o => o.Name == "ToList" && o.GetParameters().Length == 1);
+#endif
         }
 
         protected static T CreateNhFetchRequest<T>(MethodInfo currentFetchMethod, IQueryable query,
@@ -121,6 +125,7 @@ namespace NHibernate.Extensions.Linq
             return newQuery;
         }
 
+#if NHX
         public override async Task<object> ExecuteAsync(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
@@ -136,6 +141,7 @@ namespace NHibernate.Extensions.Linq
                 ? await ExecuteWithSubqueryAsync(nhQueryable, resultVisitor).ConfigureAwait(false)
                 : await ExecuteWithoutSubQueryAsync(nhQueryable, resultVisitor).ConfigureAwait(false);
         }
+#endif
 
         public override object Execute(Expression expression)
         {
@@ -156,7 +162,11 @@ namespace NHibernate.Extensions.Linq
             }
             catch (AggregateException e)
             {
+#if NHX
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+#else
+                throw;
+#endif
             }
             return null;
         }
@@ -177,6 +187,7 @@ namespace NHibernate.Extensions.Linq
                 : ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor, false);
         }
 
+#if NHX
         public override object ExecuteFutureAsync(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
@@ -192,13 +203,16 @@ namespace NHibernate.Extensions.Linq
                 ? ExecuteWithSubqueryFuture(nhQueryable, resultVisitor, true)
                 : ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor, true);
         }
+#endif
 
         #region ExecuteWithSubquery
 
+#if NHX
         private Task<object> ExecuteWithSubqueryAsync(IQueryable query, IncludeRewriterVisitor visitor)
         {
             return ExecuteQueryTreeAsync(RemoveSkipAndTake(query), visitor);
         }
+#endif
 
         private object ExecuteWithSubquery(IQueryable query, IncludeRewriterVisitor visitor)
         {
@@ -214,10 +228,12 @@ namespace NHibernate.Extensions.Linq
 
         #region ExecuteWithoutSubQuery
 
+#if NHX
         private Task<object> ExecuteWithoutSubQueryAsync(IQueryable query, IncludeRewriterVisitor visitor)
         {
             return ExecuteQueryTreeAsync(query, visitor);
         }
+#endif
 
         private object ExecuteWithoutSubQuery(IQueryable query, IncludeRewriterVisitor visitor)
         {
@@ -261,6 +277,7 @@ namespace NHibernate.Extensions.Linq
             return result;
         }
 
+#if NHX
         private async Task<object> ExecuteQueryTreeAsync(IQueryable query, IncludeRewriterVisitor visitor)
         {
             var tree = new QueryRelationTree();
@@ -292,6 +309,7 @@ namespace NHibernate.Extensions.Linq
             }
             return result;
         }
+#endif
 
         private object ExecuteQueryTreeFuture(IQueryable query, IncludeRewriterVisitor visitor, bool async)
         {
@@ -305,7 +323,11 @@ namespace NHibernate.Extensions.Linq
             var leafs = tree.GetLeafs();
             leafs.Sort();
             var queries = leafs.Aggregate(new QueryInfo(query), FetchFromPath).GetQueries();
+#if NHX
             var toFutureMethod = async ? ToFutureAsyncMethod : ToFutureMethod;
+#else
+            var toFutureMethod = ToFutureMethod;
+#endif
             var i = 0;
             foreach (var q in queries)
             {
@@ -318,7 +340,7 @@ namespace NHibernate.Extensions.Linq
             return result;
         }
 
-        #endregion ExecuteQueryTree
+#endregion ExecuteQueryTree
 
         private object GetValue(object items, string methodName)
         {
@@ -332,7 +354,11 @@ namespace NHibernate.Extensions.Linq
             }
             catch (TargetInvocationException e)
             {
+#if NHX
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+#else
+                throw;
+#endif
             }
             return null;
         }

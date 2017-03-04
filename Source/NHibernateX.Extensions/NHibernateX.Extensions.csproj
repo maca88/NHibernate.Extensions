@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{99437F2A-5B2B-47C8-A4AF-AF34935A7B8D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NHibernate.Extensions</RootNamespace>
+    <AssemblyName>NHibernateX.Extensions</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NHX</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NHX</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Iesi.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <HintPath>..\packages\Iesi.Collections.4.0.0.4000\lib\net40\Iesi.Collections.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="NHibernate, Version=4.1.0.1001, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL">
+      <HintPath>..\packages\NHibernateX.2.0.0-Alpha1\lib\net40\NHibernate.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Interactive.Async, Version=3.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Interactive.Async.3.0.0\lib\net45\System.Interactive.Async.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\NHibernate.Extensions\BatchFetchExtension.cs">
+      <Link>BatchFetchExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\DeepClone\DeepCloneMemberOptions.cs">
+      <Link>DeepClone\DeepCloneMemberOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\DeepClone\DeepCloneOptions.cs">
+      <Link>DeepClone\DeepCloneOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\DeepClone\DeepCloneParentEntity.cs">
+      <Link>DeepClone\DeepCloneParentEntity.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\DeepClone\DeepCloneSessionExtension.cs">
+      <Link>DeepClone\DeepCloneSessionExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\DeepClone\DeepCloneTypeOptions.cs">
+      <Link>DeepClone\DeepCloneTypeOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\DeepClone\IDeepCloneMemberOptions.cs">
+      <Link>DeepClone\IDeepCloneMemberOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\DeepClone\IDeepCloneTypeOptions.cs">
+      <Link>DeepClone\IDeepCloneTypeOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Internal\Dynamic.cs">
+      <Link>Internal\Dynamic.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Internal\ExpressionExtensions.cs">
+      <Link>Internal\ExpressionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Internal\ExpressionHelper.cs">
+      <Link>Internal\ExpressionHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Internal\TypeExtensions.cs">
+      <Link>Internal\TypeExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Internal\TypeHelper.cs">
+      <Link>Internal\TypeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\IIncludeQueryable.cs">
+      <Link>Linq\IIncludeQueryable.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\IncludeQueryProvider.cs">
+      <Link>Linq\IncludeQueryProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\IncludeRequest.cs">
+      <Link>Linq\IncludeRequest.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\IncludeRewriterVisitor.cs">
+      <Link>Linq\IncludeRewriterVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\LinqExtensions.cs">
+      <Link>Linq\LinqExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\Lock\LockExpressionNode.cs">
+      <Link>Linq\Lock\LockExpressionNode.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\Lock\LockResultOperator.cs">
+      <Link>Linq\Lock\LockResultOperator.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\Lock\ProcessLock.cs">
+      <Link>Linq\Lock\ProcessLock.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\QueryInfo.cs">
+      <Link>Linq\QueryInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Linq\SkipTakeVisitor.cs">
+      <Link>Linq\SkipTakeVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\QueryRelationNode.cs">
+      <Link>QueryRelationNode.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\QueryRelationTree.cs">
+      <Link>QueryRelationTree.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Subscriptions\ISessionSubscription.cs">
+      <Link>Subscriptions\ISessionSubscription.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Subscriptions\ITransactionSubscription.cs">
+      <Link>Subscriptions\ITransactionSubscription.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Subscriptions\SessionSubscription.cs">
+      <Link>Subscriptions\SessionSubscription.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Subscriptions\SessionSubscriptionExtension.cs">
+      <Link>Subscriptions\SessionSubscriptionExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Subscriptions\TransactionListener.cs">
+      <Link>Subscriptions\TransactionListener.cs</Link>
+    </Compile>
+    <Compile Include="..\NHibernate.Extensions\Subscriptions\TransactionSubscription.cs">
+      <Link>Subscriptions\TransactionSubscription.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
