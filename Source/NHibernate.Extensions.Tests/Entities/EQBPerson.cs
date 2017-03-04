@@ -59,6 +59,8 @@ namespace NHibernate.Extensions.Tests.Entities
 
         public virtual EQBIdentityCard IdentityCard { get; set; }
 
+        public virtual EQBIdentity Identity { get; set; }
+
         #endregion
 
     }

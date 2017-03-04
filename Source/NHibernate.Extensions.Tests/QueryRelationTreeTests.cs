@@ -63,5 +63,22 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(results[2][0], "CurrentOwnedVehicles");
             Assert.AreEqual(results[2][1], "CurrentOwnedVehicles.Wheels");
         }
+
+        [TestMethod]
+        public void Test3()
+        {
+            var tree = new QueryRelationTree();
+            Expression<Func<EQBPerson, object>> AB = person => person.Identity;
+            Expression<Func<EQBPerson, object>> CD = person => person.IdentityCard;
+
+            //Input
+            tree.AddNode(AB);
+            tree.AddNode(CD);
+
+            var results = tree.DeepFirstSearch();
+            //Output
+            Assert.AreEqual(results[0][0], "Identity");
+            Assert.AreEqual(results[1][0], "IdentityCard");
+        }
     }
 }

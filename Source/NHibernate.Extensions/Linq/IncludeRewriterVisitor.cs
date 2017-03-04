@@ -5,7 +5,6 @@ using System.Reflection;
 
 namespace NHibernate.Extensions.Linq
 {
-
     public class IncludeRewriterVisitor : ExpressionVisitor
     {
         public static readonly HashSet<string> SingleResultMethods = new HashSet<string>

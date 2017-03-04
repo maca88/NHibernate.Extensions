@@ -61,11 +61,13 @@
     <Compile Include="DeepClone\DeepCloneTypeOptions.cs" />
     <Compile Include="DeepClone\IDeepCloneMemberOptions.cs" />
     <Compile Include="DeepClone\IDeepCloneTypeOptions.cs" />
-    <Compile Include="DynamicLinq\Dynamic.cs" />
-    <Compile Include="Helpers\ExpressionHelper.cs" />
-    <Compile Include="Helpers\TypeHelper.cs" />
+    <Compile Include="Internal\Dynamic.cs" />
+    <Compile Include="Internal\ExpressionHelper.cs" />
+    <Compile Include="Internal\TypeHelper.cs" />
     <Compile Include="Internal\ExpressionExtensions.cs" />
     <Compile Include="Internal\TypeExtensions.cs" />
+    <Compile Include="Linq\IIncludeQueryable.cs" />
+    <Compile Include="Linq\IncludeRequest.cs" />
     <Compile Include="Linq\IncludeRewriterVisitor.cs" />
     <Compile Include="Linq\LinqExtensions.cs" />
     <Compile Include="Linq\Lock\LockExpressionNode.cs" />

@@ -1,9 +1,8 @@
-﻿using System.Linq;
-using NHibernate.Intercept;
+﻿using NHibernate.Intercept;
 using NHibernate.Proxy;
 using NHibernate.Proxy.DynamicProxy;
 
-namespace NHibernate.Extensions.Helpers
+namespace NHibernate.Extensions.Internal
 {
     internal static class TypeHelper
     {

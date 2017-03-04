@@ -59,9 +59,13 @@ namespace NHibernate.Extensions.Tests
 
             //Setting Identity card
             ana.IdentityCard = new EQBIdentityCard { Code = "1", Owner = ana };
+            ana.Identity = new EQBIdentity { Code = "1", Owner = ana };
             rok.IdentityCard = new EQBIdentityCard { Code = "2", Owner = rok };
+            rok.Identity = new EQBIdentity { Code = "2", Owner = rok };
             simon.IdentityCard = new EQBIdentityCard { Code = "3", Owner = simon };
+            simon.Identity = new EQBIdentity { Code = "3", Owner = simon };
             petra.IdentityCard = new EQBIdentityCard { Code = "4", Owner = petra };
+            petra.Identity = new EQBIdentity { Code = "4", Owner = petra };
 
             //Setting Driving licence
             rok.DrivingLicence = new EQBDrivingLicence { Code = "1", Owner = rok };

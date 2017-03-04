@@ -4,14 +4,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NHibernate.Engine;
-using NHibernate.Extensions.Helpers;
 using NHibernate.Extensions.Internal;
 using NHibernate.Linq;
 using NHibernate.Type;
-using TypeHelper = NHibernate.Extensions.Helpers.TypeHelper;
+using TypeHelper = NHibernate.Extensions.Internal.TypeHelper;
 
 namespace NHibernate.Extensions.Linq
 {

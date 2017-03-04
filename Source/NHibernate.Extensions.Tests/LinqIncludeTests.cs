@@ -53,6 +53,7 @@ namespace NHibernate.Extensions.Tests
                     .Take(10)
                     .Include(o => o.BestFriend.IdentityCard)
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.IdentityCard)
@@ -106,6 +107,34 @@ namespace NHibernate.Extensions.Tests
                 var people = query.ToList();
                 Assert.AreEqual(4, people.Count);
             }
+        }
+
+        [TestMethod]
+        public void using_then_include()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                var future = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.Wheels)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .Where(o => o.Name == "Petra")
+                    .ToFutureValue();
+                petra = future.Value;
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+                Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
+            }
+            ValidateGetEntityResult(petra);
         }
 
         [TestMethod]

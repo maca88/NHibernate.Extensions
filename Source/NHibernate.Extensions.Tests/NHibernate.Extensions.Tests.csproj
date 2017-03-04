@@ -83,6 +83,7 @@
     <Compile Include="CascadeConvention.cs" />
     <Compile Include="DeepCloneTests.cs" />
     <Compile Include="Entities\BatchModel.cs" />
+    <Compile Include="Entities\EQBIdentity.cs" />
     <Compile Include="Entities\EQBUser.cs" />
     <Compile Include="Entities\IUser.cs" />
     <Compile Include="Entities\EQBDrivingLicence.cs" />

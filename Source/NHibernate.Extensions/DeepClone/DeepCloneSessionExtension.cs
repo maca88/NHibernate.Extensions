@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using NHibernate.Collection;
 using NHibernate.Engine;
-using NHibernate.Extensions.Helpers;
 using NHibernate.Extensions.Internal;
 using NHibernate.Impl;
 using NHibernate.Persister.Entity;
