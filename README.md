@@ -6,7 +6,7 @@ Various additions for NHibernate like the Include method from EntityFramework an
 
 ## Include method
 
-Is an extension method for Linq used to eager load entity relations without worrying about cartesian product in sql. Under the hood this method uses NHibernate Fetch methods in conjunction with NHibernate Future methods. The order of the Include methods is not important as there is a logic that calculates the minimum amount of queries that are needed to fetch all relations without having any cartesian product. Let's look at an example:
+Is an extension method for Linq used to eager load entity relations without worrying about cartesian product in sql. Under the hood this method uses NHibernate Fetch methods in conjunction with NHibernate Future methods. The order of the Include methods is not important as there is a logic that calculates the minimum number of queries that are needed to fetch all relations without having any cartesian product. Let's look at an example:
 
 ```cs
 var people = session.Query<EQBPerson>()
@@ -21,7 +21,7 @@ var people = session.Query<EQBPerson>()
 	.ToList();
 ```
 
-In the above example we are eager loading a lot relations but if we want to calculate the minimum amount of queries we need to worry about one to many relations in order to prevent cartesian products. When we are eager loading nested one to many relations we won't have a cartesian product so we can load them in one query. So for the above example the minimum amount of queries to fetch all relations without having cartesian products is 3. Let's see now the equivalent code using Fetch and Future methods:
+In the above example we are eager loading a lot relations but if we want to calculate the minimum number of queries we need to worry about one to many relations in order to prevent cartesian products. When we are eager loading nested one to many relations we won't have a cartesian product so we can load them in one query. So for the above example the minimum number of queries to fetch all relations without having cartesian products is 3. Let's see now the equivalent code using Fetch and Future methods:
 
 ```cs
 var query = session.Query<EQBPerson>()
