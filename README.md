@@ -1,9 +1,10 @@
+
 NHibernate.Extensions
 =====================
 
 Various additions for NHibernate like the Include method from EntityFramework and a smart deep cloning method.
 
-##Include method
+## Include method
 
 Is an extension method for Linq used to eager load entity relations without worrying about cartesian product in sql. Under the hood this method uses NHibernate Fetch methods in conjunction with NHibernate Future methods. The order of the Include methods is not important as there is a logic that calculates the minimum amount of queries that are needed to fetch all relations without having any cartesian product. Let's look at an example:
 
@@ -48,7 +49,7 @@ var people = query.ToList();
 The whole idea of the Include method is to simplify eager loading in NHibernate.
 
 
-##DeepClone
+## DeepClone
 
 Is a extension method for NHibernate Session for deep cloning an entity with its relations that are currently loaded. This method can be used in various scenarios. Serialization is one of them as we can serialize a deep cloned entity without worrying about lazy loadings upon serialization as by default the deep cloned entity does not contain any proxies. Let's see a simple example:
 
