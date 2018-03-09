@@ -27,7 +27,7 @@ namespace NHibernate.Extensions.Linq
         {
             "Count",
             "LongCount"
-		};
+        };
 
         private static readonly MethodInfo WhereMethod;
 
@@ -47,8 +47,7 @@ namespace NHibernate.Extensions.Linq
         public Expression Modify(Expression expression)
         {
             //Check if is the last called method is a Count method
-            var methodCallExpr = expression as MethodCallExpression;
-            if (methodCallExpr != null && CountMethods.Contains(methodCallExpr.Method.Name))
+            if (expression is MethodCallExpression methodCallExpr && CountMethods.Contains(methodCallExpr.Method.Name))
             {
                 Count = true;
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using NHibernate.Extensions.Internal;
 
 namespace NHibernate.Extensions
@@ -19,6 +20,42 @@ namespace NHibernate.Extensions
         public Dictionary<string, DeepCloneMemberOptions> Members { get; set; }
 
         public bool? CloneIdentifier { get; set; }
+
+        IDeepCloneTypeOptions IDeepCloneTypeOptions.CloneIdentifier(bool value)
+        {
+            CloneIdentifier = value;
+            return this;
+        }
+
+        IDeepCloneTypeOptions IDeepCloneTypeOptions.ForMember(string memberName, Action<IDeepCloneMemberOptions> action)
+        {
+            if (!Members.ContainsKey(memberName))
+                Members.Add(memberName, new DeepCloneMemberOptions
+                {
+                    MemberName = memberName
+                });
+            action(Members[memberName]);
+            return this;
+        }
+
+        IDeepCloneTypeOptions IDeepCloneTypeOptions.ForMembers(Func<PropertyInfo, bool> func, Action<IDeepCloneMemberOptions> action)
+        {
+            foreach (var propertyInfo in Type.GetProperties())
+            {
+                if (!func(propertyInfo))
+                {
+                    continue;
+                }
+                var memberName = propertyInfo.Name;
+                if (!Members.ContainsKey(memberName))
+                    Members.Add(memberName, new DeepCloneMemberOptions
+                    {
+                        MemberName = memberName
+                    });
+                action(Members[memberName]);
+            }
+            return this;
+        }
     }
 
     public class DeepCloneTypeOptions<TType> : DeepCloneTypeOptions, IDeepCloneTypeOptions<TType>
@@ -28,9 +65,9 @@ namespace NHibernate.Extensions
         {
         }
 
-        public IDeepCloneTypeOptions<TType> CloneIdentifier(bool value)
+        IDeepCloneTypeOptions<TType> IDeepCloneTypeOptions<TType>.CloneIdentifier(bool value)
         {
-            base.CloneIdentifier = value;
+            CloneIdentifier = value;
             return this;
         }
 
@@ -44,6 +81,25 @@ namespace NHibernate.Extensions
                     MemberName = memberName
                 });
             action(Members[memberName] as IDeepCloneMemberOptions<TType, TMember>);
+            return this;
+        }
+
+        public IDeepCloneTypeOptions<TType> ForMembers(Func<PropertyInfo, bool> func, Action<IDeepCloneMemberOptions<TType, object>> action)
+        {
+            foreach (var propertyInfo in Type.GetProperties())
+            {
+                if (!func(propertyInfo))
+                {
+                    continue;
+                }
+                var memberName = propertyInfo.Name;
+                if (!Members.ContainsKey(memberName))
+                    Members.Add(memberName, new DeepCloneMemberOptions<TType, object>
+                    {
+                        MemberName = memberName
+                    });
+                action(Members[memberName] as IDeepCloneMemberOptions<TType, object>);
+            }
             return this;
         }
     }

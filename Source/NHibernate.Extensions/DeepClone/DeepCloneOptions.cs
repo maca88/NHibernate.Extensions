@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace NHibernate.Extensions
 {
@@ -51,11 +52,30 @@ namespace NHibernate.Extensions
             var type = typeof(TType);
             if (!TypeOptions.ContainsKey(typeof(TType)))
             {
-                var typeOpts = new DeepCloneTypeOptions<TType>();
-                typeOpts.CloneIdentifier(CloneIdentifierValue);
+                var typeOpts = new DeepCloneTypeOptions<TType>
+                {
+                    CloneIdentifier = CloneIdentifierValue
+                };
                 TypeOptions.Add(type, typeOpts);
             }
             action(TypeOptions[type] as IDeepCloneTypeOptions<TType>);
+            return this;
+        }
+
+        public DeepCloneOptions ForTypes(IEnumerable<System.Type> types, Action<System.Type, IDeepCloneTypeOptions> action)
+        {
+            foreach (var type in types)
+            {
+                if (!TypeOptions.ContainsKey(type))
+                {
+                    var typeOpts = new DeepCloneTypeOptions(type)
+                    {
+                        CloneIdentifier = CloneIdentifierValue
+                    };
+                    TypeOptions.Add(type, typeOpts);
+                }
+                action(type, TypeOptions[type]);
+            }
             return this;
         }
 
@@ -63,7 +83,10 @@ namespace NHibernate.Extensions
 
         internal HashSet<string> GetIgnoreMembers(System.Type type)
         {
-            if (_cachedIgnoredMembersResults.ContainsKey(type)) return _cachedIgnoredMembersResults[type];
+            if (_cachedIgnoredMembersResults.ContainsKey(type))
+            {
+                return _cachedIgnoredMembersResults[type];
+            }
             var result = new HashSet<string>();
             var pairs = TypeOptions.Where(pair => pair.Key.IsAssignableFrom(type)).ToList();
             if (pairs.Any())

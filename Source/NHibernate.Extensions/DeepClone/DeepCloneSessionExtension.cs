@@ -286,7 +286,7 @@ namespace NHibernate.Extensions
                 var copyAsReference = opts.CanCloneAsReference(entityType, propertyInfo.Name);
                 if (propertyType.IsCollectionType)
                 {
-                    var propertyList = CreateNewCollection(propType);
+                    var propertyList = CreateNewCollection(propertyType);
                     propertyInfo.SetValue(copiedEntity, propertyList, null);
                     AddItemToCollection(propertyList, propertyValue, o => copyAsReference
                         ? o
@@ -334,6 +334,17 @@ namespace NHibernate.Extensions
             return propertyList;
         }
 
+        private static object CreateNewCollection(IType collectionProperty)
+        {
+            var concreteCollType = GetCollectionImplementation(collectionProperty);
+            if (collectionProperty.ReturnedClass.IsGenericType)
+            {
+                concreteCollType = concreteCollType.MakeGenericType(collectionProperty.ReturnedClass.GetGenericArguments()[0]);
+            }
+            var propertyList = Activator.CreateInstance(concreteCollType);
+            return propertyList;
+        }
+
         private static void AddItemToCollection(object newCollection, object collection, Func<object, object> editBeforeAdding = null)
         {
             var addMethod = newCollection.GetType().GetInterfaces()
@@ -370,6 +381,20 @@ namespace NHibernate.Extensions
                 return typeof(List<>);
             if (collectionType.IsAssignableToGenericType(typeof(IEnumerable<>)))
                 return typeof(List<>);
+            throw new NotSupportedException(collectionType.FullName);
+        }
+
+        private static System.Type GetCollectionImplementation(IType collectionProperty)
+        {
+            var collectionType = collectionProperty.GetType();
+            if (collectionType.IsAssignableToGenericType(typeof(GenericSetType<>)))
+                return typeof(HashSet<>);
+            if (collectionType.IsAssignableToGenericType(typeof(GenericListType<>)) ||
+                collectionType.IsAssignableToGenericType(typeof(GenericIdentifierBagType<>)) ||
+                collectionType.IsAssignableToGenericType(typeof(GenericBagType<>)))
+                return typeof(List<>);
+            if (collectionType.IsAssignableToGenericType(typeof(GenericMapType<,>)))
+                return typeof(Dictionary<,>);
             throw new NotSupportedException(collectionType.FullName);
         }
     }

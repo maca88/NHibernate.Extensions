@@ -55,7 +55,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.IdentityCard)
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.Wheels)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
@@ -66,7 +66,6 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-#if NHX
         [TestMethod]
         public async Task using_skip_and_take_async()
         {
@@ -87,7 +86,6 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(4, test.Count);
             }
         }
-#endif
 
         [TestMethod]
         public void using_count_method()
@@ -140,7 +138,6 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-#if NHX
         [TestMethod]
         public async Task using_async_count_method()
         {
@@ -163,14 +160,9 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(4, people.Count);
             }
         }
-#endif
 
         [TestMethod]
-#if NHX
         [ExpectedException(typeof (InvalidOperationException))]
-#else
-        [ExpectedException(typeof(TargetInvocationException))]
-#endif
         public void using_single_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -190,11 +182,7 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
-#if NHX
         [ExpectedException(typeof (InvalidOperationException))]
-#else
-        [ExpectedException(typeof(TargetInvocationException))]
-#endif
         public void using_first_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -213,7 +201,6 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-#if NHX
         [TestMethod]
         [ExpectedException(typeof (InvalidOperationException))]
         public async Task using_first_async_method_for_retriving_a_person_that_dont_exists()
@@ -233,7 +220,6 @@ namespace NHibernate.Extensions.Tests
                     .FirstAsync(o => o.Name == "Test");
             }
         }
-#endif
 
         [TestMethod]
         public void using_to_future_value_method_without_getting_value()
@@ -257,7 +243,6 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
-#if NHX
         [TestMethod]
         public async Task using_to_future_value_async_method_without_getting_value()
         {
@@ -274,12 +259,11 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.OwnedHouses)
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Where(o => o.Name == "Test")
-                    .ToFutureValueAsync();
-                test = await test2.GetValue();
+                    .ToFutureValue();
+                test = await test2.GetValueAsync();
             }
             Assert.IsNull(test);
         }
-#endif
 
         [TestMethod]
         public void using_tofutorevalue_method_for_retriving_a_person_that_dont_exists()
@@ -322,7 +306,6 @@ namespace NHibernate.Extensions.Tests
             //Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
 
-#if NHX
         [TestMethod]
         public async Task using_tofutorevalue_async_method_for_retriving_a_person_that_dont_exists()
         {
@@ -339,11 +322,10 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.OwnedHouses)
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Where(o => o.Name == "Test")
-                    .ToFutureValueAsync().GetValue();
+                    .ToFutureValue().GetValueAsync();
             }
             Assert.IsNull(test);
         }
-#endif
 
         [TestMethod]
         public void test_include_with_interface()
@@ -384,7 +366,6 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
 
-#if NHX
         [TestMethod]
         public async Task test_cast_to_base_type_async()
         {
@@ -405,7 +386,6 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNotNull(petra);
             Assert.AreEqual(petra.CreatedBy.UserName, "System");
         }
-#endif
 
         [TestMethod]
         public void test_cast_to_base_type_relation()
@@ -474,7 +454,6 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_future_value_async()
         {
@@ -495,14 +474,13 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.OwnedHouses)
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Where(o => o.Name == "Petra")
-                    .ToFutureValueAsync();
-                petra = await future.GetValue();
+                    .ToFutureValue();
+                petra = await future.GetValueAsync();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
                 Assert.AreEqual("3 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
-#endif
 
 #endregion
 
@@ -535,7 +513,6 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_single_or_default_async()
         {
@@ -588,7 +565,7 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
-#endif
+
 #endregion
 
 #region Single
@@ -620,7 +597,6 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_single_async()
         {
@@ -673,7 +649,6 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
-#endif
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_single_with_parameter()
@@ -732,7 +707,6 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_first_or_default_async()
         {
@@ -785,7 +759,6 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
-#endif
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_first_or_default_with_parameter()
@@ -844,7 +817,6 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-#if NHX
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_first_async()
         {
@@ -897,7 +869,6 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
-#endif
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_first_with_parameter()

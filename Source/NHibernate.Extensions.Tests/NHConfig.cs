@@ -11,6 +11,7 @@ using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Extensions.Tests;
 using NHibernate.Tool.hbm2ddl;
+using Environment = NHibernate.Cfg.Environment;
 
 
 namespace T4FluentNH.Tests
@@ -33,7 +34,9 @@ namespace T4FluentNH.Tests
         {
             var modelAssembly = typeof(NHConfig).Assembly;
             var configuration = Configuration = new Configuration();
-            configuration.SetProperty("generate_statistics", "true");
+            configuration.SetProperty(Environment.GenerateStatistics, "true");
+            configuration.SetProperty(Environment.UseSqlComments, "true");
+            configuration.SetProperty(Environment.ShowSql, "true");
             configuration.Configure();  //configure from the web.config
             var fluentConfig = Fluently.Configure(configuration);
             var autoPestModel = AutoMap

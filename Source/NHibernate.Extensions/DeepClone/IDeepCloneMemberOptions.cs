@@ -4,15 +4,13 @@ namespace NHibernate.Extensions
 {
     public interface IDeepCloneMemberOptions
     {
-        string MemberName { get; set; }
+        IDeepCloneMemberOptions ResolveUsing(Func<object, object> func);
 
-        Func<object, object> ResolveUsing { get; set; }
+        IDeepCloneMemberOptions Ignore(bool value = true);
 
-        bool Ignore { get; set; }
+        IDeepCloneMemberOptions CloneAsReference(bool value = true);
 
-        bool CloneAsReference { get; set; }
-
-        Func<object, object> Filter { get; set; }
+        IDeepCloneMemberOptions Filter(Func<object, object> func);
     }
 
     public interface IDeepCloneMemberOptions<out TType, TMember>

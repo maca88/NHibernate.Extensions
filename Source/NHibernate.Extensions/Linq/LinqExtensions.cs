@@ -7,6 +7,7 @@ using System.Reflection;
 using NHibernate.Engine;
 using NHibernate.Extensions.Internal;
 using NHibernate.Extensions.Linq;
+using NHibernate.Util;
 using Remotion.Linq;
 
 namespace NHibernate.Linq
@@ -14,19 +15,22 @@ namespace NHibernate.Linq
     public static class LinqExtensions
     {
         private static readonly PropertyInfo SessionPropertyInfo;
+        private static readonly MethodInfo EnumerableToListMethod;
 
         static LinqExtensions()
         {
             SessionPropertyInfo = typeof (DefaultQueryProvider).GetProperty("Session",
                 BindingFlags.NonPublic | BindingFlags.Instance);
+            EnumerableToListMethod = ReflectHelper.GetMethodDefinition(() => Enumerable.ToList(new object[0]))
+                .GetGenericMethodDefinition();
         }
 
-        public static IQueryable<T> Lock<T>(this IQueryable<T> query, LockMode lockMode, string alias = null)
-        {
-            var method = ReflectionHelper.GetMethodDefinition(() => Lock<object>(null, lockMode, alias)).MakeGenericMethod(typeof(T));
-            var callExpression = Expression.Call(method, query.Expression, Expression.Constant(lockMode), Expression.Constant(alias));
-            return new NhQueryable<T>(query.Provider, callExpression);
-        }
+        //public static IQueryable<T> Lock<T>(this IQueryable<T> query, LockMode lockMode, string alias = null)
+        //{
+        //    var method = ReflectHelper.GetMethodDefinition(() => Lock<object>(null, lockMode, alias)).MakeGenericMethod(typeof(T));
+        //    var callExpression = Expression.Call(method, query.Expression, Expression.Constant(lockMode), Expression.Constant(alias));
+        //    return new NhQueryable<T>(query.Provider, callExpression);
+        //}
 
         public static IQueryable<T> Include<T>(this IQueryable<T> query, Expression<Func<T, object>> include)
         {
@@ -53,7 +57,7 @@ namespace NHibernate.Linq
             var queryType = query.GetType();
             queryType = queryType.GetGenericType(typeof(QueryableBase<>));
             if (queryType == null)
-                throw new Exception("Include function is supported only for Nhibernate queries");
+                throw new InvalidOperationException("Include method is supported only for Nhibernate queries");
 
             var itemType = queryType.GetGenericArguments()[0];
 
@@ -62,11 +66,10 @@ namespace NHibernate.Linq
             if(providerField == null)
                 throw new NullReferenceException("providerField");
             var provider = providerField.GetValue(query) as IQueryProvider;
-            var nhProvider = provider as IncludeQueryProvider;
-            if (nhProvider == null)
+            if (!(provider is IncludeQueryProvider nhProvider))
             {
                 var session = SessionPropertyInfo.GetValue(provider, null) as ISessionImplementor;
-                nhProvider = new IncludeQueryProvider(itemType, query, session);
+                nhProvider = new IncludeQueryProvider(itemType, session);
                 providerField.SetValue(query, nhProvider);
             }
             nhProvider.Include(path);
@@ -76,7 +79,8 @@ namespace NHibernate.Linq
         private static IEnumerable ToList(this IQueryable query)
         {
             var type = query.GetType().GetGenericArguments()[0];
-            var methodInfo = typeof (Enumerable).GetMethod("ToList").MakeGenericMethod(type);
+            
+            var methodInfo = EnumerableToListMethod.MakeGenericMethod(type);
             return (IEnumerable)methodInfo.Invoke(null, new object[] {query});
         }
 
