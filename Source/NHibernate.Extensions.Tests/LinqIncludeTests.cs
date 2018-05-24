@@ -303,7 +303,7 @@ namespace NHibernate.Extensions.Tests
 
                 Assert.AreEqual(1, stats.PrepareStatementCount);
             }
-            //Assert.AreEqual(petra.CreatedBy.UserName, "System");
+            //Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
         [TestMethod]
@@ -342,7 +342,7 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(1, stats.PrepareStatementCount);
                 Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
-            Assert.AreEqual(petra.CreatedBy.UserName, "System");
+            Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
         [TestMethod]
@@ -363,7 +363,7 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
             Assert.IsNotNull(petra);
-            Assert.AreEqual(petra.CreatedBy.UserName, "System");
+            Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
         [TestMethod]
@@ -384,7 +384,7 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual("1 queries (MultiQuery)", stats.Queries[0]);
             }
             Assert.IsNotNull(petra);
-            Assert.AreEqual(petra.CreatedBy.UserName, "System");
+            Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
         [TestMethod]
