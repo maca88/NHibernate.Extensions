@@ -64,7 +64,7 @@ namespace NHibernate.Extensions.Tests
                     );
 
             }
-            Assert.AreEqual(clone.Id, default(int));
+            Assert.AreEqual(default(int), clone.Id);
             Assert.IsNull(clone.Name);
             Assert.AreEqual(petra.LastName, clone.LastName);
             Assert.AreEqual(petra.IdentityCard, clone.IdentityCard);

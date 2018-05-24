@@ -28,13 +28,13 @@ namespace NHibernate.Extensions.Tests
 
             var results = tree.DeepFirstSearch();
             //Output
-            Assert.AreEqual(results[0][0], "BestFriend");
-            Assert.AreEqual(results[0][1], "BestFriend.IdentityCard");
+            Assert.AreEqual("BestFriend", results[0][0]);
+            Assert.AreEqual("BestFriend.IdentityCard", results[0][1]);
 
-            Assert.AreEqual(results[1][0], "BestFriend");
-            Assert.AreEqual(results[1][1], "BestFriend.BestFriend");
-            Assert.AreEqual(results[1][2], "BestFriend.BestFriend.BestFriend");
-            Assert.AreEqual(results[1][3], "BestFriend.BestFriend.BestFriend.BestFriend");
+            Assert.AreEqual("BestFriend", results[1][0]);
+            Assert.AreEqual("BestFriend.BestFriend", results[1][1]);
+            Assert.AreEqual("BestFriend.BestFriend.BestFriend", results[1][2]);
+            Assert.AreEqual("BestFriend.BestFriend.BestFriend.BestFriend", results[1][3]);
         }
 
         [TestMethod]
@@ -52,16 +52,16 @@ namespace NHibernate.Extensions.Tests
 
             var results = tree.DeepFirstSearch();
             //Output
-            Assert.AreEqual(results[0][0], "BestFriend");
-            Assert.AreEqual(results[0][1], "BestFriend.IdentityCard");
+            Assert.AreEqual("BestFriend", results[0][0]);
+            Assert.AreEqual("BestFriend.IdentityCard", results[0][1]);
 
-            Assert.AreEqual(results[1][0], "BestFriend");
-            Assert.AreEqual(results[1][1], "BestFriend.BestFriend");
-            Assert.AreEqual(results[1][2], "BestFriend.BestFriend.BestFriend");
-            Assert.AreEqual(results[1][3], "BestFriend.BestFriend.BestFriend.BestFriend");
+            Assert.AreEqual("BestFriend", results[1][0]);
+            Assert.AreEqual("BestFriend.BestFriend", results[1][1]);
+            Assert.AreEqual("BestFriend.BestFriend.BestFriend", results[1][2]);
+            Assert.AreEqual("BestFriend.BestFriend.BestFriend.BestFriend", results[1][3]);
 
-            Assert.AreEqual(results[2][0], "CurrentOwnedVehicles");
-            Assert.AreEqual(results[2][1], "CurrentOwnedVehicles.Wheels");
+            Assert.AreEqual("CurrentOwnedVehicles", results[2][0]);
+            Assert.AreEqual("CurrentOwnedVehicles.Wheels", results[2][1]);
         }
 
         [TestMethod]
@@ -77,8 +77,8 @@ namespace NHibernate.Extensions.Tests
 
             var results = tree.DeepFirstSearch();
             //Output
-            Assert.AreEqual(results[0][0], "Identity");
-            Assert.AreEqual(results[1][0], "IdentityCard");
+            Assert.AreEqual("Identity", results[0][0]);
+            Assert.AreEqual("IdentityCard", results[1][0]);
         }
     }
 }

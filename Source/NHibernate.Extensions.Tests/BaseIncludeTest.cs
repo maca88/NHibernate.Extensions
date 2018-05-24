@@ -15,22 +15,22 @@ namespace NHibernate.Extensions.Tests
     {
         protected void ValidateGetEntityResult(EQBPerson petra)
         {
-            Assert.AreEqual(petra.BestFriend.Name, "Ana");
-            Assert.AreEqual(petra.BestFriend.BestFriend.Name, "Simon");
-            Assert.AreEqual(petra.BestFriend.IdentityCard.Code, "1");
-            Assert.AreEqual(petra.BestFriend.BestFriend.BestFriend.Name, "Rok");
-            Assert.AreEqual(petra.BestFriend.BestFriend.BestFriend.BestFriend.Name, "Petra");
-            Assert.AreEqual(petra.BestFriend.BestFriend.BestFriend.BestFriend.BestFriend.Name, "Ana");
-            Assert.AreEqual(petra.CurrentOwnedVehicles.Count, 1);
-            Assert.AreEqual(petra.DrivingLicence.Code, "3");
-            Assert.AreEqual(petra.IdentityCard.Code, "4");
-            Assert.AreEqual(petra.CreatedBy.UserName, "System");
-            Assert.AreEqual(petra.MarriedWith, petra.BestFriend.BestFriend);
-            Assert.AreEqual(petra.OwnedHouses.Count, 1);
-            Assert.AreEqual(petra.PreviouslyOwnedVehicles.Count, 2);
+            Assert.AreEqual("Ana", petra.BestFriend.Name);
+            Assert.AreEqual("Simon", petra.BestFriend.BestFriend.Name);
+            Assert.AreEqual("1", petra.BestFriend.IdentityCard.Code);
+            Assert.AreEqual("Rok", petra.BestFriend.BestFriend.BestFriend.Name);
+            Assert.AreEqual("Petra", petra.BestFriend.BestFriend.BestFriend.BestFriend.Name);
+            Assert.AreEqual("Ana", petra.BestFriend.BestFriend.BestFriend.BestFriend.BestFriend.Name);
+            Assert.AreEqual(1, petra.CurrentOwnedVehicles.Count);
+            Assert.AreEqual("3", petra.DrivingLicence.Code);
+            Assert.AreEqual("4", petra.IdentityCard.Code);
+            Assert.AreEqual("System", petra.CreatedBy.UserName);
+            Assert.AreEqual(petra.BestFriend.BestFriend, petra.MarriedWith);
+            Assert.AreEqual(1, petra.OwnedHouses.Count);
+            Assert.AreEqual(2, petra.PreviouslyOwnedVehicles.Count);
             foreach (var wheel in petra.CurrentOwnedVehicles.First().Wheels)
             {
-                Assert.AreEqual(wheel.Width, 235);
+                Assert.AreEqual(235, wheel.Width);
             }
         }
 
