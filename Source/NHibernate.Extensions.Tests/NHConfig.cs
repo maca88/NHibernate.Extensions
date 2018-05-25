@@ -63,7 +63,10 @@ namespace T4FluentNH.Tests
             var schema = new SchemaExport(configuration);
             schema.Drop(false, true);
             schema.Create(false, true);
+
+#if HIBERNATINGRHINOS
             HibernatingRhinos.Profiler.Appender.NHibernate.NHibernateProfiler.Initialize();
+#endif
         }
 
         public static ISession OpenSession()

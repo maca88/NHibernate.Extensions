@@ -10,7 +10,9 @@ namespace T4FluentNH.Tests
     {
         public TestBase()
         {
+#if HIBERNATINGRHINOS
             HibernatingRhinos.Profiler.Appender.NHibernate.NHibernateProfiler.Initialize();
+#endif
             Session = NHConfig.OpenSession();
         }
 
