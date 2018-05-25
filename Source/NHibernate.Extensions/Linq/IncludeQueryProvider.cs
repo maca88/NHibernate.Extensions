@@ -337,7 +337,9 @@ namespace NHibernate.Extensions.Linq
                 var relatedType = relatedProp != null ? relatedProp.PropertyType : meta.MappedClass;
                 if (propType.IsCollectionType && relatedProp != null && relatedType.IsGenericType)
                 {
-                    relatedType = relatedType.GetGenericArguments()[0];
+                    relatedType = propType.GetType().IsAssignableToGenericType(typeof(GenericMapType<,>))
+                        ? typeof(KeyValuePair<,>).MakeGenericType(relatedType.GetGenericArguments())
+                        : relatedType.GetGenericArguments()[0];
                 }
 
                 var convertToType = propType.IsCollectionType

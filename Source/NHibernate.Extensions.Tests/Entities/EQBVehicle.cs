@@ -1,4 +1,5 @@
-﻿using System.CodeDom;
+﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using FluentNHibernate.Automapping;
 using FluentNHibernate.Automapping.Alterations;
@@ -11,6 +12,7 @@ namespace NHibernate.Extensions.Tests.Entities
         {
             Wheels = new HashSet<TestEQBWheel>();
             PreviousUsers = new HashSet<EQBPerson>();
+            RoadworthyTests = new Dictionary<DateTime, EQBRoadworthyTest>();
         }
 
         public virtual string Model { get; set; }
@@ -23,7 +25,7 @@ namespace NHibernate.Extensions.Tests.Entities
 
         public virtual ISet<TestEQBWheel> Wheels { get; set; }
 
-
+        public virtual IDictionary<DateTime, EQBRoadworthyTest> RoadworthyTests { get; set; }
     }
 
     public class EQBVehicleMapping : IAutoMappingOverride<EQBVehicle>
@@ -32,6 +34,7 @@ namespace NHibernate.Extensions.Tests.Entities
         {
             mapping.HasManyToMany(o => o.PreviousUsers).Inverse();
             mapping.HasMany(o => o.Wheels).KeyColumn("VehicleId");
+            mapping.HasMany(o => o.RoadworthyTests).AsMap<DateTime>(rwt => rwt.TestDate);
         }
     }
 }

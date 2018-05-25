@@ -44,11 +44,13 @@ namespace NHibernate.Extensions.Tests
             Expression<Func<EQBPerson, object>> AB = person => person.BestFriend.IdentityCard;
             Expression<Func<EQBPerson, object>> AAAA = person => person.BestFriend.BestFriend.BestFriend.BestFriend;
             Expression<Func<EQBPerson, object>> CD = person => person.CurrentOwnedVehicles.First().Wheels;
+            Expression<Func<EQBPerson, object>> CE = person => person.CurrentOwnedVehicles.First().RoadworthyTests;
 
             //Input
             tree.AddNode(AB);
             tree.AddNode(AAAA);
             tree.AddNode(CD);
+            tree.AddNode(CE);
 
             var results = tree.DeepFirstSearch();
             //Output
@@ -62,6 +64,9 @@ namespace NHibernate.Extensions.Tests
 
             Assert.AreEqual("CurrentOwnedVehicles", results[2][0]);
             Assert.AreEqual("CurrentOwnedVehicles.Wheels", results[2][1]);
+
+            Assert.AreEqual("CurrentOwnedVehicles", results[3][0]);
+            Assert.AreEqual("CurrentOwnedVehicles.RoadworthyTests", results[3][1]);
         }
 
         [TestMethod]

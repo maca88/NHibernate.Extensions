@@ -11,7 +11,7 @@ using T4FluentNH.Tests;
 
 namespace NHibernate.Extensions.Tests
 {
-    public class BaseIncludeTest
+    public abstract class BaseIncludeTest
     {
         protected void ValidateGetEntityResult(EQBPerson petra)
         {
@@ -28,6 +28,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(petra.BestFriend.BestFriend, petra.MarriedWith);
             Assert.AreEqual(1, petra.OwnedHouses.Count);
             Assert.AreEqual(2, petra.PreviouslyOwnedVehicles.Count);
+            Assert.AreEqual("Audi", petra.CurrentOwnedVehicles.First().Model);
+            Assert.AreEqual(2, petra.CurrentOwnedVehicles.First().RoadworthyTests.Count);
             foreach (var wheel in petra.CurrentOwnedVehicles.First().Wheels)
             {
                 Assert.AreEqual(235, wheel.Width);
@@ -85,24 +87,61 @@ namespace NHibernate.Extensions.Tests
             ferrari.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 320, Vehicle = ferrari });
             ferrari.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 260, Vehicle = ferrari });
             ferrari.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 260, Vehicle = ferrari });
+            ferrari.RoadworthyTests.Add(
+                new DateTime(2002, 2, 1),
+                new EQBRoadworthyTest
+                {
+                    Vehicle = ferrari,
+                    TestDate = new DateTime(2002, 2, 1),
+                    Passed = true,
+                    Comments = "I like the shade of red."
+                });
 
             var audi = new EQBVehicle { BuildYear = 2009, Model = "Audi" };
             audi.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 235, Vehicle = audi });
             audi.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 235, Vehicle = audi });
             audi.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 235, Vehicle = audi });
             audi.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 235, Vehicle = audi });
+            audi.RoadworthyTests.Add(
+                new DateTime(2009, 2, 1),
+                new EQBRoadworthyTest
+                {
+                    Vehicle = audi,
+                    TestDate = new DateTime(2009, 2, 1),
+                    Passed = false,
+                    Comments = "Brakes failing."
+                });
+            audi.RoadworthyTests.Add(
+                new DateTime(2009, 3, 1),
+                new EQBRoadworthyTest
+                {
+                    Vehicle = audi,
+                    TestDate = new DateTime(2009, 3, 1),
+                    Passed = true,
+                    Comments = "All good now."
+                });
 
             var bmw = new EQBVehicle { BuildYear = 1993, Model = "Bmw" };
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
+            // Deliberately not roadworth test
 
             var vw = new EQBVehicle { BuildYear = 2002, Model = "Vw" };
             vw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 195, Vehicle = vw });
             vw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 195, Vehicle = vw });
             vw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 195, Vehicle = vw });
             vw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 195, Vehicle = vw });
+            vw.RoadworthyTests.Add(
+                new DateTime(2002, 3, 1),
+                new EQBRoadworthyTest
+                {
+                    Vehicle = vw,
+                    TestDate = new DateTime(2002, 3, 1),
+                    Passed = true,
+                    Comments = "No problems."
+                });
 
             petra.PreviouslyOwnedVehicles.Add(vw);
             petra.PreviouslyOwnedVehicles.Add(bmw);
