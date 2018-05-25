@@ -30,6 +30,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(2, petra.PreviouslyOwnedVehicles.Count);
             Assert.AreEqual("Audi", petra.CurrentOwnedVehicles.First().Model);
             Assert.AreEqual(2, petra.CurrentOwnedVehicles.First().RoadworthyTests.Count);
+            Assert.AreEqual(2, petra.CurrentOwnedVehicles.First().MileageHistory.Count);
+            Assert.AreEqual(5000, petra.CurrentOwnedVehicles.First().MileageHistory[new DateTime(2010, 1, 1)]);
             foreach (var wheel in petra.CurrentOwnedVehicles.First().Wheels)
             {
                 Assert.AreEqual(235, wheel.Width);
@@ -96,6 +98,9 @@ namespace NHibernate.Extensions.Tests
                     Passed = true,
                     Comments = "I like the shade of red."
                 });
+            ferrari.MileageHistory.Add(new DateTime(2002, 1, 1), 0);
+            ferrari.MileageHistory.Add(new DateTime(2006, 1, 1), 60000);
+            ferrari.MileageHistory.Add(new DateTime(2010, 1, 1), 100000);
 
             var audi = new EQBVehicle { BuildYear = 2009, Model = "Audi" };
             audi.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 235, Vehicle = audi });
@@ -120,13 +125,15 @@ namespace NHibernate.Extensions.Tests
                     Passed = true,
                     Comments = "All good now."
                 });
+            audi.MileageHistory.Add(new DateTime(2009, 1, 1), 0);
+            audi.MileageHistory.Add(new DateTime(2010, 1, 1), 5000);
 
             var bmw = new EQBVehicle { BuildYear = 1993, Model = "Bmw" };
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
             bmw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 205, Vehicle = bmw });
-            // Deliberately not roadworth test
+            // Deliberately no roadworthy tests or mileage history
 
             var vw = new EQBVehicle { BuildYear = 2002, Model = "Vw" };
             vw.Wheels.Add(new TestEQBWheel { Diameter = 45, Width = 195, Vehicle = vw });
@@ -142,6 +149,8 @@ namespace NHibernate.Extensions.Tests
                     Passed = true,
                     Comments = "No problems."
                 });
+            vw.MileageHistory.Add(new DateTime(2002, 1, 1), 0);
+            vw.MileageHistory.Add(new DateTime(2015, 1, 1), 150000);
 
             petra.PreviouslyOwnedVehicles.Add(vw);
             petra.PreviouslyOwnedVehicles.Add(bmw);

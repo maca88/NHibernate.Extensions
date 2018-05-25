@@ -110,6 +110,7 @@ namespace NHibernate.Extensions.Tests
                 petra = session.Query<EQBPerson>()
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .First(o => o.Name == "Petra");
 
@@ -125,6 +126,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(clone.CurrentOwnedVehicles.First(), clone.CurrentOwnedVehicles.First().Wheels.First().Vehicle);
             Assert.AreEqual(2, clone.CurrentOwnedVehicles.First().RoadworthyTests.Count);
             Assert.AreEqual(clone.CurrentOwnedVehicles.First(), clone.CurrentOwnedVehicles.First().RoadworthyTests[new DateTime(2009, 2, 1)].Vehicle);
+            Assert.AreEqual(2, clone.CurrentOwnedVehicles.First().MileageHistory.Count);
+            Assert.AreEqual(5000, clone.CurrentOwnedVehicles.First().MileageHistory[new DateTime(2010, 1, 1)]);
 
             Assert.AreEqual(2, clone.PreviouslyOwnedVehicles.Count);
             Assert.AreEqual(clone, clone.CurrentOwnedVehicles.First().CurrentOwner);
@@ -172,6 +175,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.IdentityCard)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .First(o => o.Name == "Petra");
 
                 clone = session.DeepClone(petra, o => o
@@ -186,6 +190,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(clone.CurrentOwnedVehicles.First().Wheels.First().Vehicle);
             Assert.AreEqual(2, clone.CurrentOwnedVehicles.First().RoadworthyTests.Count);
             Assert.IsNull(clone.CurrentOwnedVehicles.First().RoadworthyTests.First().Value.Vehicle);
+            Assert.AreEqual(2, clone.CurrentOwnedVehicles.First().MileageHistory.Count);
+            Assert.IsNotNull(clone.CurrentOwnedVehicles.First().MileageHistory[new DateTime(2010, 1, 1)]);
         }
 
         [TestMethod]
@@ -200,6 +206,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.IdentityCard)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .First(o => o.Name == "Petra");
 
                 clone = session.DeepClone(petra, o => o
