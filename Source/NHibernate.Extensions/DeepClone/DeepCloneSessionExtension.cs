@@ -205,6 +205,9 @@ namespace NHibernate.Extensions
                 return entityType.GetDefaultValue();
             entityType = entityType ?? entity.GetUnproxiedType();
 
+            if (entityType.IsSimpleType())
+                return entity;
+
             AbstractEntityPersister entityMetadata;
             try
             {

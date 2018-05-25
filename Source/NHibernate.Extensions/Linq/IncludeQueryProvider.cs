@@ -11,6 +11,7 @@ using NHibernate.Engine;
 using NHibernate.Extensions.Internal;
 using NHibernate.Impl;
 using NHibernate.Linq;
+using NHibernate.Persister.Collection;
 using NHibernate.Type;
 using NHibernate.Util;
 using TypeHelper = NHibernate.Extensions.Internal.TypeHelper;
@@ -301,6 +302,10 @@ namespace NHibernate.Extensions.Linq
             var index = 0;
             foreach (var propName in paths)
             {
+                if (meta == null)
+                {
+                    throw new InvalidOperationException($"Unable to fetch property {propName} from path '{path}', no class metadata found");
+                }
                 var propType = meta.GetPropertyType(propName);
                 if (propType == null)
                     throw new Exception($"Property '{propName}' does not exist in the type '{meta.MappedClass.FullName}'");
@@ -312,6 +317,12 @@ namespace NHibernate.Extensions.Linq
 
                 if (assocType.IsCollectionType)
                 {
+                    var collectionType = assocType as CollectionType;
+                    var collectionPersister = (IQueryableCollection)Session.Factory.GetCollectionPersister(collectionType.Role);
+                    meta = collectionPersister.ElementType.IsEntityType
+                        ? Session.Factory.GetClassMetadata(collectionPersister.ElementPersister.EntityName)
+                        : null;
+
                     var collPath = string.Join(".", paths.Take(index + 1));
 
                     //Check if we can fetch the collection without create a cartesian product
@@ -326,15 +337,17 @@ namespace NHibernate.Extensions.Linq
 
                     queryInfo.CollectionPath = collPath;
                 }
-
-                meta = Session.Factory.GetClassMetadata(assocType.GetAssociatedEntityName(Session.Factory));
+                else
+                {
+                    meta = Session.Factory.GetClassMetadata(assocType.GetAssociatedEntityName(Session.Factory));
+                }
 
                 MethodInfo fetchMethod;
 
                 //Try to get the actual property type (so we can skip casting as relinq will throw an exception)
                 var relatedProp = currentType.GetProperty(propName);
 
-                var relatedType = relatedProp != null ? relatedProp.PropertyType : meta.MappedClass;
+                var relatedType = relatedProp != null ? relatedProp.PropertyType : meta?.MappedClass;
                 if (propType.IsCollectionType && relatedProp != null && relatedType.IsGenericType)
                 {
                     relatedType = propType.GetType().IsAssignableToGenericType(typeof(GenericMapType<,>))

@@ -32,6 +32,8 @@ namespace NHibernate.Extensions.Tests
                         .ThenFetchMany(o => o.Wheels)
                     .FetchMany(o => o.CurrentOwnedVehicles)
                         .ThenFetchMany(o => o.RoadworthyTests)
+                    .FetchMany(o => o.CurrentOwnedVehicles)
+                        .ThenFetchMany(o => o.MileageHistory)
                     .Fetch(o => o.DrivingLicence)
                     .Fetch(o => o.IdentityCard)
                     .Fetch(o => o.MarriedWith)
@@ -59,6 +61,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.CurrentOwnedVehicles)
                     .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.Wheels)
                     .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.IdentityCard)
                     .Include(o => o.MarriedWith)
@@ -129,6 +132,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.Wheels)
                     .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -139,7 +143,7 @@ namespace NHibernate.Extensions.Tests
                     .ToFutureValue();
                 petra = future.Value;
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -454,6 +458,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -464,7 +469,7 @@ namespace NHibernate.Extensions.Tests
                     .ToFutureValue();
                 petra = future.Value;
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -483,6 +488,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -493,7 +499,7 @@ namespace NHibernate.Extensions.Tests
                     .ToFutureValue();
                 petra = await future.GetValueAsync();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -516,6 +522,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -525,7 +532,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .SingleOrDefault();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -544,6 +551,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -553,7 +561,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .SingleOrDefaultAsync();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -572,6 +580,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -580,7 +589,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .SingleOrDefaultAsync(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -603,6 +612,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -612,7 +622,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .Single();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -631,6 +641,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -640,7 +651,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .SingleAsync();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -659,6 +670,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -667,7 +679,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .SingleAsync(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -686,6 +698,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -694,7 +707,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .Single(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -717,6 +730,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -726,7 +740,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .FirstOrDefault();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -745,6 +759,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -754,7 +769,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .FirstOrDefaultAsync();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -773,6 +788,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -781,7 +797,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .FirstOrDefaultAsync(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -800,6 +816,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -808,7 +825,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .FirstOrDefault(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -831,6 +848,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -840,7 +858,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .First();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -859,6 +877,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -868,7 +887,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .FirstAsync();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -887,6 +906,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -895,7 +915,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .FirstAsync(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -914,6 +934,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -922,7 +943,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .First(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -945,6 +966,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -954,7 +976,7 @@ namespace NHibernate.Extensions.Tests
                     .Where(o => o.Name == "Petra")
                     .LastOrDefault();
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
@@ -973,6 +995,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
                     .Include(o => o.CurrentOwnedVehicles.First().Wheels)
                     .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles.First().MileageHistory)
                     .Include(o => o.DrivingLicence)
                     .Include(o => o.CreatedBy)
                     .Include(o => o.IdentityCard)
@@ -981,7 +1004,7 @@ namespace NHibernate.Extensions.Tests
                     .Include(o => o.PreviouslyOwnedVehicles)
                     .LastOrDefault(o => o.Name == "Petra");
                 Assert.AreEqual(1, stats.PrepareStatementCount);
-                Assert.AreEqual("4 queries (MultiQuery)", stats.Queries[0]);
+                Assert.AreEqual("5 queries (MultiQuery)", stats.Queries[0]);
             }
             ValidateGetEntityResult(petra);
         }
