@@ -339,7 +339,7 @@ namespace NHibernate.Extensions
             var concreteCollType = GetCollectionImplementation(collectionProperty);
             if (collectionProperty.ReturnedClass.IsGenericType)
             {
-                concreteCollType = concreteCollType.MakeGenericType(collectionProperty.ReturnedClass.GetGenericArguments()[0]);
+                concreteCollType = concreteCollType.MakeGenericType(collectionProperty.ReturnedClass.GetGenericArguments());
             }
             var propertyList = Activator.CreateInstance(concreteCollType);
             return propertyList;
@@ -354,12 +354,27 @@ namespace NHibernate.Extensions
             var enumerable = collection as IEnumerable;
             if (enumerable != null)
             {
-                foreach (var item in enumerable)
+                var enumerableType = enumerable.GetType();
+                if (enumerableType.IsAssignableToGenericType(typeof(IDictionary<,>)))
                 {
-                    addMethod.Invoke(newCollection,
-                                     editBeforeAdding != null
-                                     ? new[] { editBeforeAdding(item) }
-                                     : new[] { item });
+                    foreach (dynamic pair in enumerable)
+                    {
+                        addMethod.Invoke(newCollection,
+                            editBeforeAdding != null
+                                ? new[] { pair.Key, editBeforeAdding(pair.Value) }
+                                : new[] { pair.Key, pair.Value }
+                        );
+                    }
+                }
+                else
+                {
+                    foreach (var item in enumerable)
+                    {
+                        addMethod.Invoke(newCollection,
+                                         editBeforeAdding != null
+                                         ? new[] { editBeforeAdding(item) }
+                                         : new[] { item });
+                    }
                 }
             }
             else
