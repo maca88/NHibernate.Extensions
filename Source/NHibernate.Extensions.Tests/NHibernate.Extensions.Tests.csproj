@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net45;net461</TargetFrameworks>
     <LangVersion>7.2</LangVersion>
     <IsPackable>false</IsPackable>
     <Authors>maca88</Authors>
@@ -10,6 +10,14 @@
     <PackageLicenseUrl>https://github.com/maca88/NHibernate.Extensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/maca88/NHibernate.Extensions</PackageProjectUrl>
     <RepositoryUrl>https://github.com/maca88/NHibernate.Extensions</RepositoryUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
+    <DefineConstants>$(DefineConstants);NH4</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <DefineConstants>$(DefineConstants);NH5</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,14 +30,27 @@
     </Content>
   </ItemGroup>
   
+  <Choose>
+    <When Condition="$(DefineConstants.Contains(NH4))">
+  <ItemGroup>
+        <PackageReference Include="Iesi.Collections" Version="4.0.1.4000" />
+        <PackageReference Include="NHibernate" Version="4.0.3.4000" />
+      </ItemGroup>
+    </When>
+    <When Condition="$(DefineConstants.Contains(NH5))">
+      <ItemGroup>
+        <PackageReference Include="Iesi.Collections" Version="4.0.2" />
+        <PackageReference Include="NHibernate" Version="5.0.0" />
+      </ItemGroup>
+    </When>
+  </Choose>
+  
   <ItemGroup>
     <PackageReference Include="FluentNHibernate" Version="2.0.3" />
-    <PackageReference Include="Iesi.Collections" Version="4.0.2" />
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.2.1" />
     <PackageReference Include="MSTest.TestFramework" Version="1.2.1" />
-    <PackageReference Include="NHibernate" Version="5.0.0" />
 
     <ProjectReference Include="..\NHibernate.Extensions\NHibernate.Extensions.csproj" />
   </ItemGroup>

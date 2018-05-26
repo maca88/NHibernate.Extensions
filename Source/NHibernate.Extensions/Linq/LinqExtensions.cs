@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,6 @@ using System.Reflection;
 using NHibernate.Engine;
 using NHibernate.Extensions.Internal;
 using NHibernate.Extensions.Linq;
-using NHibernate.Util;
 using Remotion.Linq;
 
 namespace NHibernate.Linq
@@ -21,7 +20,7 @@ namespace NHibernate.Linq
         {
             SessionPropertyInfo = typeof (DefaultQueryProvider).GetProperty("Session",
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            EnumerableToListMethod = ReflectHelper.GetMethodDefinition(() => Enumerable.ToList(new object[0]))
+            EnumerableToListMethod = NHibernate.Extensions.Util.ReflectHelper.GetMethodDefinition(() => Enumerable.ToList(new object[0]))
                 .GetGenericMethodDefinition();
         }
 

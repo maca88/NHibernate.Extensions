@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net40;net461</TargetFrameworks>
     <LangVersion>7.2</LangVersion>
     <Version>1.1.0.0</Version>
     <Authors>maca88</Authors>
@@ -14,14 +14,34 @@
     <PackageTags>NHibernate Include</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net40' ">
+    <DefineConstants>$(DefineConstants);NH4</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <DefineConstants>$(DefineConstants);NH5</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="QueryOver\**" />
   </ItemGroup>
 
+  <Choose>
+    <When Condition="$(DefineConstants.Contains(NH4))">
   <ItemGroup>
+        <PackageReference Include="Iesi.Collections" Version="4.0.1.4000" />
+        <PackageReference Include="NHibernate" Version="4.0.3.4000" />
+      </ItemGroup>
+    </When>
+    <When Condition="$(DefineConstants.Contains(NH5))">
+      <ItemGroup>
     <PackageReference Include="Iesi.Collections" Version="4.0.2" />
     <PackageReference Include="NHibernate" Version="5.0.0" />
+      </ItemGroup>
+    </When>
+  </Choose>
 
+  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 
