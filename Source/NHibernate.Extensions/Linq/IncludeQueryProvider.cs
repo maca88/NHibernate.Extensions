@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ using NHibernate.Impl;
 using NHibernate.Linq;
 using NHibernate.Persister.Collection;
 using NHibernate.Type;
-using NHibernate.Util;
+using ReflectHelper = NHibernate.Extensions.Util.ReflectHelper;
 using TypeHelper = NHibernate.Extensions.Internal.TypeHelper;
 
 namespace NHibernate.Extensions.Linq
@@ -98,6 +98,7 @@ namespace NHibernate.Extensions.Linq
             return newQuery;
         }
 
+#if NH5
         public override async Task<object> ExecuteAsync(Expression expression, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
@@ -117,6 +118,7 @@ namespace NHibernate.Extensions.Linq
                 ? (object) await ExecuteWithSubquery(nhQueryable, resultVisitor, cancellationToken)
                 : (object) await ExecuteWithoutSubQuery(nhQueryable, resultVisitor, cancellationToken);
         }
+#endif
 
         public override object Execute(Expression expression)
         {
@@ -133,6 +135,23 @@ namespace NHibernate.Extensions.Linq
                 : ExecuteWithoutSubQuery(nhQueryable, resultVisitor, null);
         }
 
+#if NH4
+        public override dynamic ExecuteFuture(Expression expression)
+        {
+            var resultVisitor = new IncludeRewriterVisitor();
+            expression = resultVisitor.Modify(expression);
+
+            //if (resultVisitor.Count)
+            //	return await base.Execute(expression, async);
+
+            var nhQueryable = (IQueryable)Activator.CreateInstance(typeof(NhQueryable<>).MakeGenericType(Type),
+                new DefaultQueryProvider(Session), expression);
+
+            return resultVisitor.SkipTake
+                ? ExecuteWithSubqueryFuture(nhQueryable, resultVisitor)
+                : ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor) as object;
+        }
+#elif NH5
         public override IFutureEnumerable<TResult> ExecuteFuture<TResult>(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
@@ -147,6 +166,7 @@ namespace NHibernate.Extensions.Linq
                 ? (IFutureEnumerable<TResult>)ExecuteWithSubqueryFuture(nhQueryable, resultVisitor)
                 : (IFutureEnumerable<TResult>)ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor);
         }
+#endif
 
         #region ExecuteWithSubquery
 
@@ -160,23 +180,30 @@ namespace NHibernate.Extensions.Linq
             return ExecuteQueryTreeFuture(RemoveSkipAndTake(query), visitor);
         }
 
-        #endregion
+#endregion
 
-        #region ExecuteWithoutSubQuery
+#region ExecuteWithoutSubQuery
 
         private dynamic ExecuteWithoutSubQuery(IQueryable query, IncludeRewriterVisitor visitor, CancellationToken? cancellationToken)
         {
             return ExecuteQueryTree(query, visitor, cancellationToken);
         }
 
+#if NH4
+        private object ExecuteWithoutSubQueryFuture(IQueryable query, IncludeRewriterVisitor visitor)
+        {
+            return ExecuteQueryTreeFuture(query, visitor);
+        }
+#elif NH5
         private dynamic ExecuteWithoutSubQueryFuture<TResult>(IQueryable<TResult> query, IncludeRewriterVisitor visitor)
         {
             return ExecuteQueryTreeFuture(query, visitor);
         }
+#endif
 
-        #endregion
+#endregion
 
-        #region ExecuteQueryTree
+#region ExecuteQueryTree
 
         private dynamic ExecuteQueryTree(IQueryable query, IncludeRewriterVisitor visitor, CancellationToken? cancellationToken)
         {
@@ -199,17 +226,23 @@ namespace NHibernate.Extensions.Linq
                     ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] { q }); //q.ToFuture();
                 i++;
             }
+#if NH5
             if (result != null && result.GetType().IsAssignableToGenericType(typeof(IFutureEnumerable<>)))
             {
                 result = cancellationToken.HasValue 
                     ? result.GetType().GetMethod("GetEnumerableAsync").Invoke(result, new object[] { cancellationToken.Value })
                     : result.GetType().GetMethod("GetEnumerable").Invoke(result, null);
             }
+#endif
             if (visitor.SingleResult)
             {
+#if NH4
+                return GetValue(result, visitor.SingleResultMethodName);
+#elif NH5
                 return cancellationToken.HasValue
                     ? GetValueAsync(result, visitor.SingleResultMethodName)
                     : GetValue(result, visitor.SingleResultMethodName);
+#endif
             }
             return result;
         }
@@ -238,13 +271,15 @@ namespace NHibernate.Extensions.Linq
             return result;
         }
 
-        #endregion ExecuteQueryTree
+#endregion ExecuteQueryTree
 
+#if NH5
         private async Task<dynamic> GetValueAsync(dynamic itemsTask, string methodName)
         {
             var items = await itemsTask.ConfigureAwait(false);
             return GetValue(items, methodName);
         }
+#endif
 
         private dynamic GetValue(object items, string methodName)
         {
@@ -258,7 +293,11 @@ namespace NHibernate.Extensions.Linq
             }
             catch (TargetInvocationException e)
             {
+#if NH4
+                throw;
+#elif NH5
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+#endif
             }
             return null;
         }
@@ -290,7 +329,11 @@ namespace NHibernate.Extensions.Linq
             var currentType = Type;
             var metas = Session.Factory.GetAllClassMetadata()
                 .Select(o => o.Value)
+#if NH4
+                .Where(o => Type.IsAssignableFrom(o.GetMappedClass(EntityMode.Poco)))
+#elif NH5
                 .Where(o => Type.IsAssignableFrom(o.MappedClass))
+#endif
                 .ToList();
             if (!metas.Any())
                 throw new HibernateException($"Metadata for type '{Type}' was not found");
@@ -308,9 +351,14 @@ namespace NHibernate.Extensions.Linq
                 }
                 var propType = meta.GetPropertyType(propName);
                 if (propType == null)
+#if NH4
+                    throw new Exception(string.Format("Property '{0}' does not exist in the type '{1}'", propName,
+                        meta.GetMappedClass(EntityMode.Poco).FullName));
+#elif NH5
                     throw new Exception($"Property '{propName}' does not exist in the type '{meta.MappedClass.FullName}'");
+#endif
 
-                if (!(propType is IAssociationType assocType))
+                    if (!(propType is IAssociationType assocType))
                 {
                     throw new Exception($"Property '{propName}' does not implement IAssociationType interface");
                 }
@@ -339,7 +387,7 @@ namespace NHibernate.Extensions.Linq
                 }
                 else
                 {
-                    meta = Session.Factory.GetClassMetadata(assocType.GetAssociatedEntityName(Session.Factory));
+                meta = Session.Factory.GetClassMetadata(assocType.GetAssociatedEntityName(Session.Factory));
                 }
 
                 MethodInfo fetchMethod;
@@ -347,7 +395,11 @@ namespace NHibernate.Extensions.Linq
                 //Try to get the actual property type (so we can skip casting as relinq will throw an exception)
                 var relatedProp = currentType.GetProperty(propName);
 
+#if NH4
+                var relatedType = relatedProp != null ? relatedProp.PropertyType : meta?.GetMappedClass(EntityMode.Poco);
+#elif NH5
                 var relatedType = relatedProp != null ? relatedProp.PropertyType : meta?.MappedClass;
+#endif
                 if (propType.IsCollectionType && relatedProp != null && relatedType.IsGenericType)
                 {
                     relatedType = propType.GetType().IsAssignableToGenericType(typeof(GenericMapType<,>))

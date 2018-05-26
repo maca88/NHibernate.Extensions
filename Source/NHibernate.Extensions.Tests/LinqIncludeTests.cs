@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -72,6 +72,7 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
+#if NH5
         [TestMethod]
         public async Task using_skip_and_take_async()
         {
@@ -93,6 +94,7 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(4, test.Count);
             }
         }
+#endif
 
         [TestMethod]
         public void using_count_method()
@@ -148,6 +150,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NH5
         [TestMethod]
         public async Task using_async_count_method()
         {
@@ -171,9 +174,14 @@ namespace NHibernate.Extensions.Tests
                 Assert.AreEqual(4, people.Count);
             }
         }
+#endif
 
         [TestMethod]
+#if NH5
         [ExpectedException(typeof (InvalidOperationException))]
+#else
+        [ExpectedException(typeof(TargetInvocationException))]
+#endif
         public void using_single_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -194,7 +202,11 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+#if NH5
         [ExpectedException(typeof (InvalidOperationException))]
+#else
+        [ExpectedException(typeof(TargetInvocationException))]
+#endif
         public void using_first_method_for_retriving_a_person_that_dont_exists()
         {
             EQBPerson test;
@@ -214,6 +226,7 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
+#if NH5
         [TestMethod]
         [ExpectedException(typeof (InvalidOperationException))]
         public async Task using_first_async_method_for_retriving_a_person_that_dont_exists()
@@ -234,6 +247,7 @@ namespace NHibernate.Extensions.Tests
                     .FirstAsync(o => o.Name == "Test");
             }
         }
+#endif
 
         [TestMethod]
         public void using_to_future_value_method_without_getting_value()
@@ -258,6 +272,7 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
+#if NH5
         [TestMethod]
         public async Task using_to_future_value_async_method_without_getting_value()
         {
@@ -280,6 +295,7 @@ namespace NHibernate.Extensions.Tests
             }
             Assert.IsNull(test);
         }
+#endif
 
         [TestMethod]
         public void using_tofutorevalue_method_for_retriving_a_person_that_dont_exists()
@@ -323,6 +339,7 @@ namespace NHibernate.Extensions.Tests
             //Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
+#if NH5
         [TestMethod]
         public async Task using_tofutorevalue_async_method_for_retriving_a_person_that_dont_exists()
         {
@@ -344,6 +361,7 @@ namespace NHibernate.Extensions.Tests
             }
             Assert.IsNull(test);
         }
+#endif
 
         [TestMethod]
         public void test_include_with_interface()
@@ -384,6 +402,7 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
+#if NH5
         [TestMethod]
         public async Task test_cast_to_base_type_async()
         {
@@ -404,6 +423,7 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNotNull(petra);
             Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
+#endif
 
         [TestMethod]
         public void test_cast_to_base_type_relation()
@@ -474,6 +494,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NH5
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_future_value_async()
         {
@@ -503,6 +524,7 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
 #endregion
 
@@ -537,6 +559,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NH5
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_single_or_default_async()
         {
@@ -593,7 +616,7 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
-
+#endif
 #endregion
 
 #region Single
@@ -627,6 +650,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NH5
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_single_async()
         {
@@ -683,6 +707,7 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_single_with_parameter()
@@ -745,6 +770,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NH5
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_first_or_default_async()
         {
@@ -801,6 +827,7 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_first_or_default_with_parameter()
@@ -863,6 +890,7 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
+#if NH5
         [TestMethod]
         public async Task get_single_result_without_skip_or_take_with_first_async()
         {
@@ -919,6 +947,7 @@ namespace NHibernate.Extensions.Tests
             }
             ValidateGetEntityResult(petra);
         }
+#endif
 
         [TestMethod]
         public void get_single_result_without_skip_or_take_with_first_with_parameter()
