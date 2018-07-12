@@ -7,12 +7,17 @@
     <FileVersion>2.0.0.0</FileVersion>
     <Authors>maca88</Authors>
     <Company />
-    <Copyright>Copyright © 2016</Copyright>
+    <Copyright>Copyright © 2018</Copyright>
+    <PackageId>NHibernate.Extensions</PackageId>
     <PackageLicenseUrl>https://github.com/maca88/NHibernate.Extensions/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/maca88/NHibernate.Extensions</PackageProjectUrl>
     <RepositoryUrl>https://github.com/maca88/NHibernate.Extensions</RepositoryUrl>
     <Description>Various additions for NHibernate like the Include method from EntityFramework</Description>
     <PackageTags>NHibernate Include</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
