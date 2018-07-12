@@ -4,6 +4,16 @@ NHibernate.Extensions
 
 Various additions for NHibernate like the Include method from EntityFramework and a smart deep cloning method.
 
+## Install via NuGet
+
+If you want to include NHibernate.Extensions in your project, you can [install it directly from NuGet](https://www.nuget.org/packages/NHibernate.Extensions).
+
+To install NHibernate.Extensions, run the following command in the Package Manager Console.
+
+```
+PM> Install-Package NHibernate.Extensions
+```
+
 ## Include method
 
 Is an extension method for Linq used to eager load entity relations without worrying about cartesian product in sql. Under the hood this method uses NHibernate Fetch methods in conjunction with NHibernate Future methods. The order of the Include methods is not important as there is a logic that calculates the minimum number of queries that are needed to fetch all relations without having any cartesian product. Let's look at an example:
