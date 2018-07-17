@@ -14,13 +14,10 @@ namespace NHibernate.Linq
 {
     public static class LinqExtensions
     {
-        private static readonly PropertyInfo SessionPropertyInfo;
         private static readonly MethodInfo EnumerableToListMethod;
 
         static LinqExtensions()
         {
-            SessionPropertyInfo = typeof (DefaultQueryProvider).GetProperty("Session",
-                BindingFlags.NonPublic | BindingFlags.Instance);
             EnumerableToListMethod = ReflectHelper.GetMethodDefinition(() => Enumerable.ToList(new object[0]))
                 .GetGenericMethodDefinition();
         }
@@ -68,8 +65,7 @@ namespace NHibernate.Linq
             var provider = providerField.GetValue(query) as IQueryProvider;
             if (!(provider is IncludeQueryProvider nhProvider))
             {
-                var session = SessionPropertyInfo.GetValue(provider, null) as ISessionImplementor;
-                nhProvider = new IncludeQueryProvider(itemType, session);
+                nhProvider = new IncludeQueryProvider(itemType, (INhQueryProvider)provider);
                 providerField.SetValue(query, nhProvider);
             }
             nhProvider.Include(path);
