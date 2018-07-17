@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Extensions.Internal;
-using NHibernate.Impl;
 using NHibernate.Linq;
 using NHibernate.Persister.Collection;
 using NHibernate.Type;
@@ -18,7 +17,7 @@ using TypeHelper = NHibernate.Extensions.Internal.TypeHelper;
 
 namespace NHibernate.Extensions.Linq
 {
-    public class IncludeQueryProvider : DefaultQueryProvider
+    public class IncludeQueryProvider : INhQueryProvider
     {
         protected static readonly MethodInfo CreateQueryMethodDefinition;
         protected static readonly MethodInfo FetchMethod;
@@ -29,11 +28,12 @@ namespace NHibernate.Extensions.Linq
         protected static readonly MethodInfo ContainsMethod;
         protected static readonly MethodInfo ToFutureMethod;
         protected static readonly MethodInfo ToFutureValueMethod;
+        private static readonly PropertyInfo SessionPropertyInfo;
 
         static IncludeQueryProvider()
         {
             CreateQueryMethodDefinition =
-                ReflectHelper.GetMethodDefinition((IncludeQueryProvider p) => p.CreateQuery<object>(null));
+                ReflectHelper.GetMethodDefinition((INhQueryProvider p) => p.CreateQuery<object>(null));
             FetchMethod =
                 ReflectHelper.GetMethodDefinition(() => EagerFetchingExtensionMethods.Fetch<object, object>(null, null));
             FetchManyMethod =
@@ -51,6 +51,9 @@ namespace NHibernate.Extensions.Linq
 
             WhereMethod = ReflectHelper.GetMethodDefinition(() => Queryable.Where<object>(null, o => true));
             ContainsMethod = ReflectHelper.GetMethodDefinition(() => Queryable.Contains<object>(null, null));
+
+            SessionPropertyInfo = typeof(DefaultQueryProvider).GetProperty("Session",
+                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
         }
 
         protected static T CreateNhFetchRequest<T>(MethodInfo currentFetchMethod, IQueryable query,
@@ -75,12 +78,13 @@ namespace NHibernate.Extensions.Linq
         }
 
         protected System.Type Type;
+        private readonly INhQueryProvider _defaultQueryProvider;
         public readonly List<string> IncludePaths = new List<string>();
 
-
-        public IncludeQueryProvider(System.Type type, ISessionImplementor session) : base(session)
+        public IncludeQueryProvider(System.Type type, INhQueryProvider defaultQueryProvider)
         {
             Type = type;
+            _defaultQueryProvider = defaultQueryProvider;
         }
 
         public IncludeQueryProvider Include(string path)
@@ -89,7 +93,9 @@ namespace NHibernate.Extensions.Linq
             return this;
         }
 
-        public override IQueryable<T> CreateQuery<T>(Expression expression)
+        public ISessionImplementor Session => (ISessionImplementor)SessionPropertyInfo.GetValue(_defaultQueryProvider);
+
+        public IQueryable<T> CreateQuery<T>(Expression expression)
         {
             var newQuery = new NhQueryable<T>(this, expression);
             if (!typeof (T).IsAssignableFrom(Type)) //Select and other methods that returns other types
@@ -98,33 +104,37 @@ namespace NHibernate.Extensions.Linq
             return newQuery;
         }
 
-        public override async Task<object> ExecuteAsync(Expression expression, CancellationToken cancellationToken)
+        public IQueryable CreateQuery(Expression expression)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return Task.FromCanceled<object>(cancellationToken);
-            }
+            var m = CreateQueryMethodDefinition.MakeGenericMethod(expression.Type.GetGenericArguments()[0]);
+            return (IQueryable)m.Invoke(this, new object[] { expression });
+        }
+
+        public async Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
 
             if (resultVisitor.Count)
-                return await base.ExecuteAsync(expression, cancellationToken);
+                return await _defaultQueryProvider.ExecuteAsync<TResult>(expression, cancellationToken);
 
-            var nhQueryable = (IQueryable) Activator.CreateInstance(typeof (NhQueryable<>).MakeGenericType(Type),
+            var nhQueryable = (IQueryable)Activator.CreateInstance(typeof(NhQueryable<>).MakeGenericType(Type),
                 new DefaultQueryProvider(Session), expression);
 
             return resultVisitor.SkipTake
-                ? (object) await ExecuteWithSubquery(nhQueryable, resultVisitor, cancellationToken)
-                : (object) await ExecuteWithoutSubQuery(nhQueryable, resultVisitor, cancellationToken);
+                ? (TResult)await ExecuteWithSubquery(nhQueryable, resultVisitor, cancellationToken)
+                : (TResult)await ExecuteWithoutSubQuery(nhQueryable, resultVisitor, cancellationToken);
         }
 
-        public override object Execute(Expression expression)
+        public object Execute(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
 
             if (resultVisitor.Count)
-                return base.Execute(expression);
+                return _defaultQueryProvider.Execute(expression);
 
             var nhQueryable = (IQueryable) Activator.CreateInstance(typeof (NhQueryable<>).MakeGenericType(Type),
                 new DefaultQueryProvider(Session), expression);
@@ -133,7 +143,17 @@ namespace NHibernate.Extensions.Linq
                 : ExecuteWithoutSubQuery(nhQueryable, resultVisitor, null);
         }
 
-        public override IFutureEnumerable<TResult> ExecuteFuture<TResult>(Expression expression)
+        public TResult Execute<TResult>(Expression expression)
+        {
+            return (TResult)Execute(expression);
+        }
+
+        public Task<int> ExecuteDmlAsync<T>(QueryMode queryMode, Expression expression, CancellationToken cancellationToken)
+        {
+            return _defaultQueryProvider.ExecuteDmlAsync<T>(queryMode, expression, cancellationToken);
+        }
+
+        public IFutureEnumerable<TResult> ExecuteFuture<TResult>(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
@@ -144,8 +164,33 @@ namespace NHibernate.Extensions.Linq
             var nhQueryable = (IQueryable<TResult>) new NhQueryable<TResult>(new DefaultQueryProvider(Session), expression);
 
             return resultVisitor.SkipTake
-                ? (IFutureEnumerable<TResult>)ExecuteWithSubqueryFuture(nhQueryable, resultVisitor)
-                : (IFutureEnumerable<TResult>)ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor);
+                ? (IFutureEnumerable<TResult>)ExecuteWithSubqueryFuture(nhQueryable, resultVisitor, false)
+                : (IFutureEnumerable<TResult>)ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor, false);
+        }
+
+        public IFutureValue<TResult> ExecuteFutureValue<TResult>(Expression expression)
+        {
+            var resultVisitor = new IncludeRewriterVisitor();
+            expression = resultVisitor.Modify(expression);
+
+            //if (resultVisitor.Count)
+            //	return await base.Execute(expression, async);
+
+            var nhQueryable = (IQueryable<TResult>)new NhQueryable<TResult>(new DefaultQueryProvider(Session), expression);
+
+            return resultVisitor.SkipTake
+                ? (IFutureValue<TResult>)ExecuteWithSubqueryFuture(nhQueryable, resultVisitor, true)
+                : (IFutureValue<TResult>)ExecuteWithoutSubQueryFuture(nhQueryable, resultVisitor, true);
+        }
+
+        public void SetResultTransformerAndAdditionalCriteria(IQuery query, NhLinqExpression nhExpression, IDictionary<string, Tuple<object, IType>> parameters)
+        {
+            _defaultQueryProvider.SetResultTransformerAndAdditionalCriteria(query, nhExpression, parameters);
+        }
+
+        public int ExecuteDml<T>(QueryMode queryMode, Expression expression)
+        {
+            return _defaultQueryProvider.ExecuteDml<T>(queryMode, expression);
         }
 
         #region ExecuteWithSubquery
@@ -155,9 +200,9 @@ namespace NHibernate.Extensions.Linq
             return ExecuteQueryTree(RemoveSkipAndTake(query), visitor, cancellationToken);
         }
 
-        private dynamic ExecuteWithSubqueryFuture(IQueryable query, IncludeRewriterVisitor visitor)
+        private dynamic ExecuteWithSubqueryFuture(IQueryable query, IncludeRewriterVisitor visitor, bool value)
         {
-            return ExecuteQueryTreeFuture(RemoveSkipAndTake(query), visitor);
+            return ExecuteQueryTreeFuture(RemoveSkipAndTake(query), visitor, value);
         }
 
         #endregion
@@ -169,9 +214,9 @@ namespace NHibernate.Extensions.Linq
             return ExecuteQueryTree(query, visitor, cancellationToken);
         }
 
-        private dynamic ExecuteWithoutSubQueryFuture<TResult>(IQueryable<TResult> query, IncludeRewriterVisitor visitor)
+        private dynamic ExecuteWithoutSubQueryFuture<TResult>(IQueryable<TResult> query, IncludeRewriterVisitor visitor, bool value)
         {
-            return ExecuteQueryTreeFuture(query, visitor);
+            return ExecuteQueryTreeFuture(query, visitor, value);
         }
 
         #endregion
@@ -214,7 +259,7 @@ namespace NHibernate.Extensions.Linq
             return result;
         }
 
-        private object ExecuteQueryTreeFuture(IQueryable query, IncludeRewriterVisitor visitor)
+        private object ExecuteQueryTreeFuture(IQueryable query, IncludeRewriterVisitor visitor, bool value)
         {
             var tree = new QueryRelationTree();
             object result = null;
@@ -230,7 +275,9 @@ namespace NHibernate.Extensions.Linq
             foreach (var q in queries)
             {
                 if (i == 0)
-                    result = ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
+                    result = value
+                        ? ToFutureValueMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}) //q.ToFutureValue();
+                        : ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
                 else
                     ToFutureMethod.MakeGenericMethod(Type).Invoke(null, new object[] {q}); //q.ToFuture();
                 i++;
