@@ -1,27 +1,28 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace NHibernate.Extensions.Linq
 {
-    internal class QueryInfo
+    internal class ExpressionInfo
     {
-        private readonly IQueryable _originalQuery;
+        private readonly Expression _originalQuery;
 
-        public QueryInfo(IQueryable query)
+        public ExpressionInfo(Expression expression)
         {
-            _originalQuery = query;
-            Query = query;
+            _originalQuery = expression;
+            Expression = expression;
         }
 
-        public IQueryable Query { get; set; }
+        public Expression Expression { get; set; }
 
         public string CollectionPath { get; set; }
 
-        public QueryInfo Next { get; set; }
+        public ExpressionInfo Next { get; set; }
 
-        public QueryInfo Previous { get; set; }
+        public ExpressionInfo Previous { get; set; }
 
-        public QueryInfo GetLast()
+        public ExpressionInfo GetLast()
         {
             var current = this;
             while (current.Next != null)
@@ -31,7 +32,7 @@ namespace NHibernate.Extensions.Linq
             return current;
         }
 
-        public QueryInfo GetFirst()
+        public ExpressionInfo GetFirst()
         {
             var current = this;
             while (current.Previous != null)
@@ -41,23 +42,23 @@ namespace NHibernate.Extensions.Linq
             return current;
         }
 
-        public List<IQueryable> GetQueries()
+        public List<Expression> GetExpressions()
         {
             var current = GetFirst();
-            var queries = new List<IQueryable> { current.Query };
+            var queries = new List<Expression> { current.Expression };
 
             while (current.Next != null)
             {
                 current = current.Next;
-                queries.Add(current.Query);
+                queries.Add(current.Expression);
             }
             return queries;
         }
 
-        public QueryInfo GetOrCreateNext()
+        public ExpressionInfo GetOrCreateNext()
         {
             if (Next != null) return Next;
-            var next = new QueryInfo(_originalQuery);
+            var next = new ExpressionInfo(_originalQuery);
             Next = next;
             next.Previous = this;
             return next;
