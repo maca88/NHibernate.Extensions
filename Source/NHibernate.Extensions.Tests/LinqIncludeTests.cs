@@ -116,6 +116,26 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void collections_with_same_prefix()
+        {
+            EQBPerson person;
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+
+                person = session.Query<EQBPerson>()
+                    .Include(o => o.CurrentOwnedVehicles)
+                    .Include(o => o.CurrentOwnedVehiclesOld)
+                    .FirstOrDefault(o => o.Name == "Petra");
+
+                CheckStatistics(stats, 2);
+            }
+            Assert.IsNotNull(person);
+            Assert.AreEqual(1, person.CurrentOwnedVehicles.Count);
+        }
+
+        [TestMethod]
         public void using_count_method()
         {
             using (var session = NHConfig.OpenSession())

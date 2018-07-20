@@ -22,6 +22,8 @@ namespace NHibernate.Extensions.Tests.Entities
 
         public virtual EQBPerson CurrentOwner { get; set; }
 
+        public virtual EQBPerson OldCurrentOwner { get; set; }
+
         public virtual ISet<EQBPerson> PreviousUsers { get; set; }
 
         public virtual ISet<TestEQBWheel> Wheels { get; set; }

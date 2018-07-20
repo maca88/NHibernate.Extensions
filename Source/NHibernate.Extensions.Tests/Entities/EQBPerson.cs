@@ -33,6 +33,8 @@ namespace NHibernate.Extensions.Tests.Entities
 
         public virtual ISet<EQBVehicle> CurrentOwnedVehicles { get; set; }
 
+        public virtual ISet<EQBVehicle> CurrentOwnedVehiclesOld { get; set; }
+
         #endregion
 
         #region ManyToMany
@@ -70,6 +72,7 @@ namespace NHibernate.Extensions.Tests.Entities
         public void Override(AutoMapping<EQBPerson> mapping)
         {
             mapping.HasMany(o => o.CurrentOwnedVehicles).KeyColumn("CurrentOwnerId");
+            mapping.HasMany(o => o.CurrentOwnedVehiclesOld).KeyColumn("OldOwnerId");
             mapping.HasManyToMany(o => o.PreviouslyOwnedVehicles);
             mapping.HasManyToMany(o => o.OwnedHouses);
             mapping.References(o => o.CreatedBy).Class<EQBUser>();

@@ -387,7 +387,7 @@ namespace NHibernate.Extensions.Linq
                     //Check if we can fetch the collection without create a cartesian product
                     //Fetch can occur only for nested collection
                     if (!string.IsNullOrEmpty(expressionInfo.CollectionPath) &&
-                        !collPath.StartsWith(expressionInfo.CollectionPath))
+                        !collPath.StartsWith(expressionInfo.CollectionPath + "."))
                     {
                         //We have to continue fetching within a new base query
                         var nextQueryInfo = expressionInfo.GetOrCreateNext();
