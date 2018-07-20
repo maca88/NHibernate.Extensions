@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NHibernate.Extensions.Linq;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Linq;
 using NHibernate.Stat;
@@ -13,6 +14,25 @@ namespace NHibernate.Extensions.Tests
     [TestClass]
     public class LinqIncludeTests : BaseIncludeTest
     {
+        [TestMethod]
+        public void immutable()
+        {
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBPerson>().Include(o => o.BestFriend);
+
+                Assert.AreEqual(typeof(IncludeQueryProvider), query.Provider.GetType());
+                Assert.AreNotEqual(query.Provider, query.Include(o => o.DrivingLicence).Provider);
+                Assert.AreNotEqual(query.Provider, query.Include(o => o.CurrentOwnedVehicles).Provider);
+                Assert.AreNotEqual(query.Provider, query.Include("DrivingLicence").Provider);
+                Assert.AreNotEqual(query.Provider, ((IQueryable)query).Include("DrivingLicence").Provider);
+
+                var includeQuery = query.Include(o => o.CurrentOwnedVehicles);
+                Assert.AreNotEqual(includeQuery.Provider, includeQuery.ThenInclude(o => o.CurrentOwner).Provider);
+                Assert.AreNotEqual(includeQuery.Provider, includeQuery.ThenInclude(o => o.PreviousUsers).Provider);
+            }
+        }
+
         [TestMethod]
         public void using_skip_and_take()
         {

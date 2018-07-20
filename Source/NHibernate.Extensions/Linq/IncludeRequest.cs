@@ -22,16 +22,14 @@ namespace NHibernate.Extensions.Linq
         public IQueryable<TRoot> ThenInclude(Expression<Func<TChild, object>> include)
         {
             var path = ExpressionHelper.GetFullPath(include.Body);
-            this.Include($"{BasePath}.{path}");
-            return this;
+            return this.Include($"{BasePath}.{path}");
         }
 
         public IIncludeQueryable<T, TRoot> ThenInclude<T>(Expression<Func<TChild, IEnumerable<T>>> include)
         {
             var path = ExpressionHelper.GetFullPath(include.Body);
             var newPath = $"{BasePath}.{path}".Trim('.');
-            this.Include(newPath);
-            return new IncludeRequest<T, TRoot>(newPath, Provider, Expression);
+            return new IncludeRequest<T, TRoot>(newPath, this.IncludeInternal(newPath), Expression);
         }
     }
 }
