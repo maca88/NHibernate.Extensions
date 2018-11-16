@@ -32,7 +32,7 @@ namespace NHibernate.Linq
         //    return new NhQueryable<T>(query.Provider, callExpression);
         //}
 
-        public static IQueryable<T> Include<T>(this IQueryable<T> query, Expression<Func<T, object>> include)
+        public static IIncludeQueryable<T> Include<T>(this IQueryable<T> query, Expression<Func<T, object>> include)
         {
             var path = ExpressionHelper.GetFullPath(include.Body);
             return Include(query, path);
@@ -41,15 +41,15 @@ namespace NHibernate.Linq
         public static IIncludeQueryable<TChild, T> Include<T, TChild>(this IQueryable<T> query, Expression<Func<T, IEnumerable<TChild>>> include)
         {
             var path = ExpressionHelper.GetFullPath(include.Body);
-            return new IncludeRequest<TChild,T>(path, IncludeInternal(query, path), query.Expression);
+            return new IncludeQueryable<TChild,T>(path, IncludeInternal(query, path), query.Expression);
         }
 
-        public static IQueryable<T> Include<T>(this IQueryable<T> query, string path)
+        public static IIncludeQueryable<T> Include<T>(this IQueryable<T> query, string path)
         {
-            return new NhQueryable<T>(IncludeInternal(query, path), query.Expression);
+            return new IncludeQueryable<T>(IncludeInternal(query, path), query.Expression);
         }
 
-        public static IQueryable Include(this IQueryable query, string path)
+        public static IIncludeQueryable Include(this IQueryable query, string path)
         {
             var queryType = query.GetType();
             queryType = queryType.GetGenericType(typeof(QueryableBase<>));
@@ -58,7 +58,7 @@ namespace NHibernate.Linq
                 throw new InvalidOperationException("Include method is supported only for NHibernate queries");
             }
 
-            return (IQueryable) IncludeMethod.MakeGenericMethod(queryType.GetGenericArguments()[0])
+            return (IIncludeQueryable) IncludeMethod.MakeGenericMethod(queryType.GetGenericArguments()[0])
                 .Invoke(null, new object[] {query, path});
         }
 

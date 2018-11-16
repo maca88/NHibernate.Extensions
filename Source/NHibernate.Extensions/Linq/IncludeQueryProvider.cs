@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,6 +9,7 @@ using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Extensions.Internal;
 using NHibernate.Linq;
+using NHibernate.Metadata;
 using NHibernate.Persister.Collection;
 using NHibernate.Type;
 using NHibernate.Util;
@@ -98,6 +97,7 @@ namespace NHibernate.Extensions.Linq
 
         protected System.Type Type;
         private readonly DefaultQueryProvider _queryProvider;
+        private readonly IncludeOptions _options = IncludeOptions.Default;
         public readonly List<string> IncludePaths = new List<string>();
 
         public IncludeQueryProvider(System.Type type, DefaultQueryProvider queryProvider)
@@ -106,13 +106,20 @@ namespace NHibernate.Extensions.Linq
             _queryProvider = queryProvider;
         }
 
-        public IncludeQueryProvider(System.Type type, IncludeQueryProvider includeQueryProvider) : this(type, includeQueryProvider._queryProvider, includeQueryProvider.IncludePaths)
+        public IncludeQueryProvider(System.Type type, IncludeQueryProvider includeQueryProvider)
+            : this(
+                type,
+                includeQueryProvider._queryProvider,
+                includeQueryProvider.IncludePaths,
+                includeQueryProvider._options.Clone())
         {
         }
 
-        private IncludeQueryProvider(System.Type type, DefaultQueryProvider queryProvider, IEnumerable<string> includePaths) : this(type, queryProvider)
+        private IncludeQueryProvider(System.Type type, DefaultQueryProvider queryProvider, IEnumerable<string> includePaths, IncludeOptions options)
+            : this(type, queryProvider)
         {
             IncludePaths.AddRange(includePaths);
+            _options = options;
         }
 
         public IncludeQueryProvider Include(string path)
@@ -226,10 +233,17 @@ namespace NHibernate.Extensions.Linq
         //{
         //    if (_queryProvider is IQueryProviderWithOptions queryProviderWithOptions)
         //    {
-        //        return new IncludeQueryProvider(Type, (INhQueryProvider) queryProviderWithOptions.WithOptions(setOptions), IncludePaths);
+        //        return new IncludeQueryProvider(Type, (DefaultQueryProvider)queryProviderWithOptions.WithOptions(setOptions), IncludePaths);
         //    }
         //    throw new InvalidOperationException($"The underlying query provider {_queryProvider.GetType()} does not support WithOptions method.");
         //}
+
+        public IncludeQueryProvider WithIncludeOptions(Action<IncludeOptions> setOptions)
+        {
+            var newOptions = _options.Clone();
+            setOptions(newOptions);
+            return new IncludeQueryProvider(Type, _queryProvider, IncludePaths, newOptions);
+        }
 
         public Task<int> ExecuteDmlAsync<T>(QueryMode queryMode, Expression expression, CancellationToken cancellationToken)
         {
@@ -272,18 +286,9 @@ namespace NHibernate.Extensions.Linq
 
         private IFutureEnumerable<T> ExecuteQueryTreeFuture<T>(Expression queryExpression)
         {
-            var tree = new QueryRelationTree();
             IFutureEnumerable<T> result = null;
-            foreach (var path in IncludePaths)
-            {
-                tree.AddNode(path);
-            }
-
-            var leafs = tree.GetLeafs();
-            leafs.Sort();
-            var expressions = leafs.Aggregate(new ExpressionInfo(queryExpression), FetchFromPath).GetExpressions();
             var i = 0;
-            foreach (var expression in expressions)
+            foreach (var expression in GetExpressions(queryExpression))
             {
                 if (i == 0)
                     result = _queryProvider.ExecuteFuture<T>(expression);
@@ -296,18 +301,9 @@ namespace NHibernate.Extensions.Linq
 
         private IFutureValue<T> ExecuteQueryTreeFutureValue<T>(Expression queryExpression)
         {
-            var tree = new QueryRelationTree();
             IFutureValue<T> result = null;
-            foreach (var path in IncludePaths)
-            {
-                tree.AddNode(path);
-            }
-
-            var leafs = tree.GetLeafs();
-            leafs.Sort();
-            var expressions = leafs.Aggregate(new ExpressionInfo(queryExpression), FetchFromPath).GetExpressions();
             var i = 0;
-            foreach (var expression in expressions)
+            foreach (var expression in GetExpressions(queryExpression))
             {
                 if (i == 0)
                     result = _queryProvider.ExecuteFutureValue<T>(expression);
@@ -316,6 +312,43 @@ namespace NHibernate.Extensions.Linq
                 i++;
             }
             return result;
+        }
+
+        private List<Expression> GetExpressions(Expression queryExpression)
+        {
+            IClassMetadata meta;
+            var metas = Session.Factory.GetAllClassMetadata()
+                .Select(o => o.Value)
+                .Where(o => Type.IsAssignableFrom(o.MappedClass))
+                .ToList();
+            if (!metas.Any())
+            {
+                throw new HibernateException($"Metadata for type '{Type}' was not found");
+            }
+
+            if (metas.Count > 1)
+            {
+                meta = metas.FirstOrDefault(o => o.MappedClass == Type);
+                if (meta == null)
+                {
+                    throw new HibernateException(
+                        $"Unable to find the the correct candidate for type '{Type}'. Candidates: {string.Join(", ", metas.Select(o => o.MappedClass))}");
+                }
+            }
+            else
+            {
+                meta = metas.First();
+            }
+
+            var tree = new QueryRelationTree();
+            foreach (var path in IncludePaths)
+            {
+                tree.AddNode(path);
+            }
+
+            var leafs = tree.GetLeafs();
+            leafs.Sort();
+            return leafs.Aggregate(new ExpressionInfo(queryExpression, meta), FetchFromPath).GetExpressions();
         }
 
         private Expression RemoveSkipAndTake(Expression queryExpression)
@@ -340,23 +373,13 @@ namespace NHibernate.Extensions.Linq
 
         private ExpressionInfo FetchFromPath(ExpressionInfo expressionInfo, string path)
         {
-            return FetchFromPath(expressionInfo, path, true);
-        }
-
-        private ExpressionInfo FetchFromPath(ExpressionInfo expressionInfo, string path, bool root)
-        {
+            var meta = expressionInfo.Metadata;
+            var root = true;
             var expression = expressionInfo.Expression;
             var currentType = Type;
-            var metas = Session.Factory.GetAllClassMetadata()
-                .Select(o => o.Value)
-                .Where(o => Type.IsAssignableFrom(o.MappedClass))
-                .ToList();
-            if (!metas.Any())
-                throw new HibernateException($"Metadata for type '{Type}' was not found");
-            if (metas.Count > 1)
-                throw new HibernateException($"There are more than one metadata for type '{Type}'");
+            string collectionPath = null;
+            var includedPaths = new List<string>();
 
-            var meta = metas.First();
             var paths = path.Split('.');
             var index = 0;
             foreach (var propName in paths)
@@ -365,40 +388,52 @@ namespace NHibernate.Extensions.Linq
                 {
                     throw new InvalidOperationException($"Unable to fetch property {propName} from path '{path}', no class metadata found");
                 }
+
                 var propType = meta.GetPropertyType(propName);
                 if (propType == null)
+                {
                     throw new Exception($"Property '{propName}' does not exist in the type '{meta.MappedClass.FullName}'");
+                }
 
                 if (!(propType is IAssociationType assocType))
                 {
                     throw new Exception($"Property '{propName}' does not implement IAssociationType interface");
                 }
 
+                if (_options.IgnoreIncludedRelationFunction?.Invoke(Session.Factory, assocType) == true)
+                {
+                    break;
+                }
+
+                IQueryableCollection collectionPersister = null;
                 if (assocType.IsCollectionType)
                 {
-                    var collectionType = assocType as CollectionType;
-                    var collectionPersister = (IQueryableCollection)Session.Factory.GetCollectionPersister(collectionType.Role);
+                    var collectionType = (CollectionType) assocType;
+                    collectionPersister = (IQueryableCollection) Session.Factory.GetCollectionPersister(collectionType.Role);
                     meta = collectionPersister.ElementType.IsEntityType
                         ? Session.Factory.GetClassMetadata(collectionPersister.ElementPersister.EntityName)
-                        : null;
-
+                        : null; // Will happen for dictionaries
                     var collPath = string.Join(".", paths.Take(index + 1));
-
                     //Check if we can fetch the collection without create a cartesian product
                     //Fetch can occur only for nested collection
                     if (!string.IsNullOrEmpty(expressionInfo.CollectionPath) &&
                         !collPath.StartsWith(expressionInfo.CollectionPath + "."))
                     {
                         //We have to continue fetching within a new base query
-                        var nextQueryInfo = expressionInfo.GetOrCreateNext();
-                        return FetchFromPath(nextQueryInfo, path, true);
+                        return FetchFromPath(expressionInfo.GetOrCreateNext(), path);
                     }
 
-                    expressionInfo.CollectionPath = collPath;
+                    collectionPath = collPath;
                 }
                 else
                 {
                     meta = Session.Factory.GetClassMetadata(assocType.GetAssociatedEntityName(Session.Factory));
+                }
+
+                var includedPath = expressionInfo.AddIncludedProperty(propName, meta, collectionPersister, root);
+                if (includedPath != null)
+                {
+                    includedPaths.Add(includedPath);
                 }
 
                 MethodInfo fetchMethod;
@@ -433,13 +468,32 @@ namespace NHibernate.Extensions.Linq
                         : ThenFetchMethod.MakeGenericMethod(Type, currentType, relatedType);
                 }
 
-                
                 expression = Expression.Call(fetchMethod, expression, propertyExpression);
                 currentType = relatedType;
                 index++;
                 root = false;
             }
+
+            if (_options.MaximumColumnsPerQuery.HasValue &&
+                expressionInfo.TotalColumns > _options.MaximumColumnsPerQuery.Value &&
+                expressionInfo.IsExpressionModified)
+            {
+                // Remove the included paths as we have to rebuild the expression from start
+                foreach (var includedPath in includedPaths)
+                {
+                    expressionInfo.RemoveIncludedProperty(includedPath);
+                }
+
+                return FetchFromPath(expressionInfo.GetOrCreateNext(), path);
+            }
+
+            if (!string.IsNullOrEmpty(collectionPath))
+            {
+                expressionInfo.CollectionPath = collectionPath;
+            }
+
             expressionInfo.Expression = expression;
+
             return expressionInfo;
         }
 

@@ -34,6 +34,15 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void inheritance()
+        {
+            using (var session = NHConfig.OpenSession())
+            {
+                var list = session.Query<Animal>().Include(o => o.Type).ToList();
+            }
+        }
+
+        [TestMethod]
         public void using_skip_and_take()
         {
             /*NHibernate way*/
@@ -186,6 +195,75 @@ namespace NHibernate.Extensions.Tests
                 CheckStatistics(stats, 5);
             }
             ValidateGetEntityResult(petra);
+        }
+
+        [TestMethod]
+        public void set_maximum_columns_per_query()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .WithIncludeOptions(o => o.SetMaximumColumnsPerQuery(50))
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.Wheels)
+                    .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.RoadworthyTests)
+                    .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.MileageHistory)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.CreatedBy)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles)
+                    .First(o => o.Name == "Petra");
+                CheckStatistics(stats, 6);
+            }
+            ValidateGetEntityResult(petra);
+        }
+
+        [TestMethod]
+        public void set_ignore_included_relation_function()
+        {
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .WithIncludeOptions(o => o.SetIgnoreIncludedRelationFunction(
+                        (factory, type) => type.ReturnedClass == typeof(EQBIdentityCard)))
+                    .First(o => o.Name == "Petra");
+            }
+
+            Assert.IsTrue(NHibernateUtil.IsInitialized(petra.BestFriend));
+            Assert.IsFalse(NHibernateUtil.IsInitialized(petra.BestFriend.IdentityCard));
+        }
+
+        [TestMethod]
+        public void set_ignore_included_relation_function_global()
+        {
+            IncludeOptions.Default.IgnoreIncludedRelationFunction = (factory, type) => type.ReturnedClass == typeof(EQBIdentityCard);
+            try
+            {
+                EQBPerson petra;
+                using (var session = NHConfig.OpenSession())
+                {
+                    petra = session.Query<EQBPerson>()
+                        .Include(o => o.BestFriend.IdentityCard)
+                        .First(o => o.Name == "Petra");
+                }
+
+                Assert.IsTrue(NHibernateUtil.IsInitialized(petra.BestFriend));
+                Assert.IsFalse(NHibernateUtil.IsInitialized(petra.BestFriend.IdentityCard));
+            }
+            finally
+            {
+                IncludeOptions.Default.IgnoreIncludedRelationFunction = null;
+            }
         }
 
         [TestMethod]
