@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,7 +10,7 @@ namespace NHibernate.Extensions
 {
     public static class BatchFetchExtension
     {
-        private static readonly MethodInfo ContainsMethodInfo;
+        internal static readonly MethodInfo ContainsMethodInfo;
 
         static BatchFetchExtension()
         {
@@ -29,7 +30,7 @@ namespace NHibernate.Extensions
         /// <param name="propertyExpr">Expression pointing to the property that represents the key</param>
         /// <param name="batchSize">Number of records that will be retrieved within one execution</param>
         /// <param name="queryFunc">Function to modify the query prior execution</param>
-        /// <returns></returns>
+        /// <returns>The fetched entites.</returns>
         public static List<TEntity> BatchFetch<TEntity, TProperty>(this ISession session, ICollection<TProperty> keys,
             Expression<Func<TEntity, TProperty>> propertyExpr,
             int batchSize,
@@ -39,32 +40,28 @@ namespace NHibernate.Extensions
             {
                 throw new ArgumentNullException(nameof(propertyExpr));
             }
+
             if (keys == null)
             {
                 throw new ArgumentNullException(nameof(keys));
             }
-            var parameter = propertyExpr.Parameters[0];
-            var method = ContainsMethodInfo.MakeGenericMethod(typeof(TProperty));
-            var result = new List<TEntity>();
-            var currIndex = 0;
-            var itemsCount = keys.Count;
-            while (currIndex < itemsCount)
-            {
-                var batchNum = Math.Min(batchSize, itemsCount - currIndex);
-                var batchItems = keys.Skip(currIndex).Take(batchNum).ToList();
-                var value = Expression.Constant(batchItems, typeof(IEnumerable<TProperty>));
-                var containsMethod = Expression.Call(method, value, propertyExpr.Body);
-                var predicate = Expression.Lambda<Func<TEntity, bool>>(containsMethod, parameter);
-                var query = session.Query<TEntity>()
-                    .Where(predicate);
-                if (queryFunc != null)
-                {
-                    query = queryFunc(query);
-                }
-                result.AddRange(query.ToArray());
-                currIndex += batchNum;
-            }
-            return result;
+
+            return session.BatchFetch<TEntity>(batchSize)
+                .SetKeys(keys, propertyExpr)
+                .BeforeQueryExecution(queryFunc)
+                .Execute();
+        }
+
+        /// <summary>
+        /// Batch fetching a collecion of keys by using ISession Linq provider
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="session">NHibernate session</param>
+        /// <param name="batchSize">Number of records that will be retrieved within one execution</param>
+        /// <returns>The batch fetch builder.</returns>
+        public static IBatchFetchBuilder<TEntity> BatchFetch<TEntity>(this ISession session, int batchSize)
+        {
+            return new BatchFetchBuilder<TEntity>(session, batchSize);
         }
     }
 }

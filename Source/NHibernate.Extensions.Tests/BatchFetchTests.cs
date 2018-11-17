@@ -91,6 +91,48 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void batch_test_select_anonymous_type()
+        {
+            var keys = Enumerable.Range(1, 600).ToList();
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                var queryCount = stats.PrepareStatementCount;
+                var models = session.BatchFetch<BatchModel>(50)
+                    .SetKeys(keys, o => o.Id)
+                    .BeforeQueryExecution(q => q.Where(o => o.Id > 400))
+                    .Select(o => new { o.Name })
+                    .Execute();
+
+                var expectedQueryCount = (int)Math.Ceiling(keys.Count / 50m);
+                Assert.AreEqual(200, models.Count);
+                Assert.AreEqual(expectedQueryCount, stats.PrepareStatementCount - queryCount);
+            }
+        }
+
+        [TestMethod]
+        public void batch_test_select_string()
+        {
+            var keys = Enumerable.Range(1, 600).ToList();
+
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                var queryCount = stats.PrepareStatementCount;
+                var models = session.BatchFetch<BatchModel>(50)
+                    .SetKeys(keys, o => o.Id)
+                    .Select(o => o.Name)
+                    .BeforeQueryExecution(q => q.Where(o => o.Id > 400))
+                    .Execute();
+
+                var expectedQueryCount = (int)Math.Ceiling(keys.Count / 50m);
+                Assert.AreEqual(200, models.Count);
+                Assert.AreEqual(expectedQueryCount, stats.PrepareStatementCount - queryCount);
+            }
+        }
+
+        [TestMethod]
         public void batch_performance()
         {
             var keys = Enumerable.Range(1, 5000).ToList();
