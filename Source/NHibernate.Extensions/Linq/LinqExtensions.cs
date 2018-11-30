@@ -52,23 +52,18 @@ namespace NHibernate.Linq
         public static IIncludeQueryable Include(this IQueryable query, string path)
         {
             var queryType = query.GetType();
-            queryType = queryType.GetGenericType(typeof(QueryableBase<>));
+            queryType = queryType.GetGenericType(typeof(IQueryable<>));
             if (queryType == null)
             {
-                throw new InvalidOperationException("Include method is supported only for NHibernate queries");
+                throw new InvalidOperationException($"Query of type {query.GetType()} cannot be converted to {typeof(IQueryable<>)}.");
             }
 
             return (IIncludeQueryable) IncludeMethod.MakeGenericMethod(queryType.GetGenericArguments()[0])
                 .Invoke(null, new object[] {query, path});
         }
 
-        internal static IncludeQueryProvider IncludeInternal<T>(this IQueryable<T> query, string path)
+        internal static IQueryProvider IncludeInternal<T>(this IQueryable<T> query, string path)
         {
-            if (!(query.Provider is INhQueryProvider))
-            {
-                throw new InvalidOperationException("Include method is supported only for NHibernate queries");
-            }
-
             if (query.Provider is IncludeQueryProvider includeQueryProvider)
             {
                 includeQueryProvider = new IncludeQueryProvider(typeof(T), includeQueryProvider);
@@ -79,7 +74,7 @@ namespace NHibernate.Linq
             }
             else
             {
-                throw new InvalidOperationException($"Query provider {query.Provider} is not supported.");
+                return query.Provider;
             }
 
             includeQueryProvider.Include(path);

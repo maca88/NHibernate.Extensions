@@ -9,7 +9,7 @@ namespace NHibernate.Extensions.Linq
 {
     public class IncludeQueryable<TRoot> : NhQueryable<TRoot>, IIncludeQueryable<TRoot>, IIncludeQueryable
     {
-        public IncludeQueryable(IncludeQueryProvider provider, Expression expression)
+        public IncludeQueryable(IQueryProvider provider, Expression expression)
             : base(provider, expression)
         {
         }
@@ -27,7 +27,7 @@ namespace NHibernate.Extensions.Linq
 
     public class IncludeQueryable<TChild, TRoot> : NhQueryable<TRoot>, IIncludeQueryable<TChild, TRoot>
     {
-        public IncludeQueryable(string basePath, IncludeQueryProvider provider, Expression expression)
+        public IncludeQueryable(string basePath, IQueryProvider provider, Expression expression)
             : base(provider, expression)
         {
             BasePath = basePath;

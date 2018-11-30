@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -40,6 +41,18 @@ namespace NHibernate.Extensions.Tests
             {
                 var list = session.Query<Animal>().Include(o => o.Type).ToList();
             }
+        }
+
+        [TestMethod]
+        public void linq_to_object()
+        {
+            var person = new List<EQBPerson>()
+                .AsQueryable()
+                .Include(o => o.BestFriend)
+                .Include(o => o.CurrentOwnedVehicles).ThenInclude(o => o.CurrentOwner)
+                .FirstOrDefault();
+
+            Assert.IsNull(person);
         }
 
         [TestMethod]
