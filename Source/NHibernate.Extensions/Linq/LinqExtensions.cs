@@ -25,13 +25,6 @@ namespace NHibernate.Linq
                 .GetGenericMethodDefinition();
         }
 
-        //public static IQueryable<T> Lock<T>(this IQueryable<T> query, LockMode lockMode, string alias = null)
-        //{
-        //    var method = ReflectHelper.GetMethodDefinition(() => Lock<object>(null, lockMode, alias)).MakeGenericMethod(typeof(T));
-        //    var callExpression = Expression.Call(method, query.Expression, Expression.Constant(lockMode), Expression.Constant(alias));
-        //    return new NhQueryable<T>(query.Provider, callExpression);
-        //}
-
         public static IIncludeQueryable<T> Include<T>(this IQueryable<T> query, Expression<Func<T, object>> include)
         {
             var path = ExpressionHelper.GetFullPath(include.Body);
