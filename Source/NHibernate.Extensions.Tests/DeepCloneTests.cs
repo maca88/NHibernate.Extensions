@@ -5,7 +5,6 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Linq;
-using T4FluentNH.Tests;
 
 namespace NHibernate.Extensions.Tests
 {

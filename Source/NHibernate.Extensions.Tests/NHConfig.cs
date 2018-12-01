@@ -1,24 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using FluentNHibernate.Automapping;
 using FluentNHibernate.Cfg;
-using FluentNHibernate.Cfg.Db;
 using FluentNHibernate.Conventions.Helpers;
-using NHibernate;
+using log4net;
+using log4net.Config;
 using NHibernate.Cfg;
-using NHibernate.Extensions.Tests;
 using NHibernate.Tool.hbm2ddl;
 using Environment = NHibernate.Cfg.Environment;
 
 
-namespace T4FluentNH.Tests
+namespace NHibernate.Extensions.Tests
 {
     public class AutomappingConfiguration : DefaultAutomappingConfiguration
     {
-        public override bool ShouldMap(Type type)
+        public override bool ShouldMap(System.Type type)
         {
             return base.ShouldMap(type) && typeof(Entity).IsAssignableFrom(type);
         }
@@ -32,12 +28,24 @@ namespace T4FluentNH.Tests
 
         static NHConfig()
         {
+            XmlConfigurator.Configure(LogManager.GetRepository(typeof(NHConfig).Assembly));
+#if DEBUG
+            HibernatingRhinos.Profiler.Appender.NHibernate.NHibernateProfiler.Initialize();
+#endif
+
             var modelAssembly = typeof(NHConfig).Assembly;
             var configuration = Configuration = new Configuration();
             configuration.SetProperty(Environment.GenerateStatistics, "true");
             configuration.SetProperty(Environment.UseSqlComments, "true");
             configuration.SetProperty(Environment.ShowSql, "true");
-            configuration.Configure();  //configure from the web.config
+            configuration.Configure();  // Configure from the hibernate.cfg.config
+
+            // We have to replace |DataDirectory| as it is not supported on .NET Core
+            var connString = configuration.Properties[Environment.ConnectionString];
+            configuration.Properties[Environment.ConnectionString] =
+                connString.Replace("|DataDirectory|",
+                    Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..")));
+
             var fluentConfig = Fluently.Configure(configuration);
             var autoPestModel = AutoMap
                 .Assemblies(new AutomappingConfiguration(), new[] { modelAssembly })
@@ -52,27 +60,25 @@ namespace T4FluentNH.Tests
                 {
                     m.HbmMappings.AddFromAssembly(modelAssembly);
                     m.AutoMappings.Add(autoPestModel);
+#if DEBUG
                     var mappingsDirecotry = Path.Combine(Directory.GetCurrentDirectory(), "Mappings");
                     if (!Directory.Exists(mappingsDirecotry))
                         Directory.CreateDirectory(mappingsDirecotry);
                     m.AutoMappings.ExportTo(mappingsDirecotry);
                     m.FluentMappings.ExportTo(mappingsDirecotry);
+#endif
                 });
-            
+
             SessionFactory = fluentConfig.BuildSessionFactory();
+
             var schema = new SchemaExport(configuration);
             schema.Drop(false, true);
             schema.Create(false, true);
-
-#if HIBERNATINGRHINOS
-            HibernatingRhinos.Profiler.Appender.NHibernate.NHibernateProfiler.Initialize();
-#endif
         }
 
         public static ISession OpenSession()
         {
-            ISession session = SessionFactory.OpenSession();
-            return session;
+            return SessionFactory.OpenSession();
         }
     }
 }

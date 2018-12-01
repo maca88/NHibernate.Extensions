@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Tool.hbm2ddl;
-using T4FluentNH.Tests;
 
 namespace NHibernate.Extensions.Tests
 {
@@ -176,6 +175,13 @@ namespace NHibernate.Extensions.Tests
             schema.Drop(false, true);
             schema.Create(false, true);
             FillData();
+        }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            var schema = new SchemaExport(NHConfig.Configuration);
+            schema.Drop(false, true);
         }
 
         protected void FillData()

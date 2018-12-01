@@ -8,7 +8,6 @@ using NHibernate.Extensions.Linq;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Linq;
 using NHibernate.Stat;
-using T4FluentNH.Tests;
 
 namespace NHibernate.Extensions.Tests
 {
@@ -437,7 +436,6 @@ namespace NHibernate.Extensions.Tests
         [TestMethod]
         public void test_selectmany()
         {
-            IPerson petra;
             /*Without parameter*/
             using (var session = NHConfig.OpenSession())
             {

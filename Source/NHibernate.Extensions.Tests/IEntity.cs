@@ -18,7 +18,7 @@
             return GetType();
         }
 
-        public virtual bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             var compareTo = obj as Entity;
             if (ReferenceEquals(this, compareTo))
@@ -28,10 +28,12 @@
             return HasSameNonDefaultIdAs(compareTo);
         }
 
-        public virtual int GetHashCode()
+        public override int GetHashCode()
         {
             if(IsTransient())
+                // ReSharper disable once BaseObjectGetHashCodeCallInGetHashCode
                 return base.GetHashCode();
+            // ReSharper disable once NonReadonlyMemberInGetHashCode
             return (GetType().GetHashCode() * 31) ^ Id.GetHashCode();
         }
 

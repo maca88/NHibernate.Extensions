@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.2</LangVersion>
     <Version>2.0.0.0</Version>
     <FileVersion>2.0.0.0</FileVersion>
@@ -14,6 +14,8 @@
     <RepositoryUrl>https://github.com/maca88/NHibernate.Extensions</RepositoryUrl>
     <Description>Various additions for NHibernate like the Include method from EntityFramework</Description>
     <PackageTags>NHibernate Include</PackageTags>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatSpecificWarningsAsErrors />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -21,14 +23,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="QueryOver\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Iesi.Collections" Version="4.0.2" />
-    <PackageReference Include="NHibernate" Version="5.0.0" />
-
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Iesi.Collections" Version="4.0.4" />
+    <PackageReference Include="NHibernate" Version="5.1.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

@@ -39,7 +39,9 @@ namespace NHibernate.Extensions.Linq
             ExecuteInternalMethod =
                 ReflectHelper.GetMethodDefinition((IncludeQueryProvider p) => p.ExecuteInternal<object>(null, null));
             ExecuteInternalAsyncMethod =
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 ReflectHelper.GetMethodDefinition((IncludeQueryProvider p) => p.ExecuteInternalAsync<object>(null, null, default));
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
             FetchMethod =
                 ReflectHelper.GetMethodDefinition(() => EagerFetchingExtensionMethods.Fetch<object, object>(null, null));
