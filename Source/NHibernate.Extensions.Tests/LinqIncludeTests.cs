@@ -55,6 +55,64 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void linq_to_object_with_include_options()
+        {
+            var person = new List<EQBPerson>()
+                .AsQueryable()
+                .Include(o => o.BestFriend)
+                .WithIncludeOptions(options => options.SetMaximumColumnsPerQuery(10))
+                .FirstOrDefault();
+
+            Assert.IsNull(person);
+        }
+
+        [TestMethod]
+        public void linq_to_object_with_include_options_non_generic()
+        {
+            IQueryable query = new List<EQBPerson>().AsQueryable();
+            var persons = query
+                .Include("BestFriend")
+                .WithIncludeOptions(options => options.SetMaximumColumnsPerQuery(10))
+                .ToList<EQBPerson>();
+
+            Assert.AreEqual(0, persons.Count);
+        }
+
+        [TestMethod]
+        public void session_with_options()
+        {
+            using (var session = NHConfig.OpenSession())
+            {
+                var person = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend)
+                    .WithOptions(o => o.SetReadOnly(true))
+                    .First(o => o.Name == "Petra");
+
+                Assert.IsTrue(session.IsReadOnly(person));
+                Assert.IsTrue(session.IsReadOnly(person.BestFriend));
+            }
+        }
+
+        [TestMethod]
+        public void queryable_collection()
+        {
+            List<EQBVehicle> vehicles;
+            using (var session = NHConfig.OpenSession())
+            {
+                var person = session.Query<EQBPerson>()
+                    .First(o => o.Name == "Petra");
+
+                vehicles = person.CurrentOwnedVehicles.AsQueryable()
+                    .Include(o => o.Wheels)
+                    .ToList();
+            }
+
+            Assert.AreEqual(4, vehicles.Count);
+            Assert.IsTrue(NHibernateUtil.IsInitialized(vehicles.First().Wheels));
+            Assert.IsTrue(NHibernateUtil.IsInitialized(vehicles.First().Wheels.First()));
+        }
+
+        [TestMethod]
         public void using_skip_and_take()
         {
             /*NHibernate way*/

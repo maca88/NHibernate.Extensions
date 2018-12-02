@@ -16,12 +16,22 @@ namespace NHibernate.Extensions.Linq
 
         IIncludeQueryable<TRoot> IIncludeQueryable<TRoot>.WithIncludeOptions(Action<IIncludeOptions> action)
         {
-            return new IncludeQueryable<TRoot>(((IncludeQueryProvider)Provider).WithIncludeOptions(action), Expression);
+            if (Provider is IncludeQueryProvider includeQueryProvider)
+            {
+                return new IncludeQueryable<TRoot>(includeQueryProvider.WithIncludeOptions(action), Expression);
+            }
+
+            return new IncludeQueryable<TRoot>(Provider, Expression);
         }
 
         IIncludeQueryable IIncludeQueryable.WithIncludeOptions(Action<IIncludeOptions> action)
         {
-            return new IncludeQueryable<TRoot>(((IncludeQueryProvider)Provider).WithIncludeOptions(action), Expression);
+            if (Provider is IncludeQueryProvider includeQueryProvider)
+            {
+                return new IncludeQueryable<TRoot>(includeQueryProvider.WithIncludeOptions(action), Expression);
+            }
+
+            return new IncludeQueryable<TRoot>(Provider, Expression);
         }
     }
 

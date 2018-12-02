@@ -70,10 +70,6 @@ namespace NHibernate.Extensions.Tests
                 });
 
             SessionFactory = fluentConfig.BuildSessionFactory();
-
-            var schema = new SchemaExport(configuration);
-            schema.Drop(false, true);
-            schema.Create(false, true);
         }
 
         public static ISession OpenSession()

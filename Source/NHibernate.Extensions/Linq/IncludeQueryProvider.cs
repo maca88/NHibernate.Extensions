@@ -16,7 +16,7 @@ using NHibernate.Util;
 
 namespace NHibernate.Extensions.Linq
 {
-    public class IncludeQueryProvider : INhQueryProvider
+    public class IncludeQueryProvider : INhQueryProvider, IQueryProviderWithOptions
     {
         protected static readonly MethodInfo CreateQueryMethod;
         protected static readonly MethodInfo ExecuteInternalMethod;
@@ -29,7 +29,7 @@ namespace NHibernate.Extensions.Linq
         protected static readonly MethodInfo FetchManyMethod;
         protected static readonly MethodInfo ThenFetchMethod;
         protected static readonly MethodInfo ThenFetchManyMethod;
- 
+
         private static readonly Func<DefaultQueryProvider, ISessionImplementor> SessionProvider;
 
         static IncludeQueryProvider()
@@ -99,7 +99,7 @@ namespace NHibernate.Extensions.Linq
 
         protected System.Type Type;
         private readonly DefaultQueryProvider _queryProvider;
-        private readonly IncludeOptions _options = IncludeOptions.Default;
+        private readonly IncludeOptions _includeOptions = IncludeOptions.Default;
         public readonly List<string> IncludePaths = new List<string>();
 
         public IncludeQueryProvider(System.Type type, DefaultQueryProvider queryProvider)
@@ -113,15 +113,15 @@ namespace NHibernate.Extensions.Linq
                 type,
                 includeQueryProvider._queryProvider,
                 includeQueryProvider.IncludePaths,
-                includeQueryProvider._options.Clone())
+                includeQueryProvider._includeOptions.Clone())
         {
         }
 
-        private IncludeQueryProvider(System.Type type, DefaultQueryProvider queryProvider, IEnumerable<string> includePaths, IncludeOptions options)
+        private IncludeQueryProvider(System.Type type, DefaultQueryProvider queryProvider, IEnumerable<string> includePaths, IncludeOptions includeOptions)
             : this(type, queryProvider)
         {
             IncludePaths.AddRange(includePaths);
-            _options = options;
+            _includeOptions = includeOptions;
         }
 
         public IncludeQueryProvider Include(string path)
@@ -231,18 +231,15 @@ namespace NHibernate.Extensions.Linq
             return ExecuteQueryTreeFutureValue<TResult>(expression);
         }
 
-        //public IQueryProvider WithOptions(Action<NhQueryableOptions> setOptions)
-        //{
-        //    if (_queryProvider is IQueryProviderWithOptions queryProviderWithOptions)
-        //    {
-        //        return new IncludeQueryProvider(Type, (DefaultQueryProvider)queryProviderWithOptions.WithOptions(setOptions), IncludePaths);
-        //    }
-        //    throw new InvalidOperationException($"The underlying query provider {_queryProvider.GetType()} does not support WithOptions method.");
-        //}
+        public IQueryProvider WithOptions(Action<NhQueryableOptions> setOptions)
+        {
+            return new IncludeQueryProvider(Type, (DefaultQueryProvider) _queryProvider.WithOptions(setOptions),
+                IncludePaths, _includeOptions.Clone());
+        }
 
         public IncludeQueryProvider WithIncludeOptions(Action<IncludeOptions> setOptions)
         {
-            var newOptions = _options.Clone();
+            var newOptions = _includeOptions.Clone();
             setOptions(newOptions);
             return new IncludeQueryProvider(Type, _queryProvider, IncludePaths, newOptions);
         }
@@ -402,7 +399,7 @@ namespace NHibernate.Extensions.Linq
                     throw new Exception($"Property '{propName}' does not implement IAssociationType interface");
                 }
 
-                if (_options.IgnoreIncludedRelationFunction?.Invoke(Session.Factory, assocType) == true)
+                if (_includeOptions.IgnoreIncludedRelationFunction?.Invoke(Session.Factory, assocType) == true)
                 {
                     break;
                 }
@@ -476,8 +473,8 @@ namespace NHibernate.Extensions.Linq
                 root = false;
             }
 
-            if (_options.MaximumColumnsPerQuery.HasValue &&
-                expressionInfo.TotalColumns > _options.MaximumColumnsPerQuery.Value &&
+            if (_includeOptions.MaximumColumnsPerQuery.HasValue &&
+                expressionInfo.TotalColumns > _includeOptions.MaximumColumnsPerQuery.Value &&
                 expressionInfo.IsExpressionModified)
             {
                 // Remove the included paths as we have to rebuild the expression from start
