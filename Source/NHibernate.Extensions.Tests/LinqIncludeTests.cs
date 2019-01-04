@@ -113,6 +113,46 @@ namespace NHibernate.Extensions.Tests
         }
 
         [TestMethod]
+        public void future_long_count()
+        {
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles)
+                    .Where(o => o.Name == "Petra");
+
+                var futureCount = query.ToFutureValue(o => o.LongCount());
+                var items = query.ToList();
+
+                Assert.AreEqual(1, futureCount.Value);
+                Assert.AreEqual(1, items.Count);
+                Assert.IsTrue(NHibernateUtil.IsInitialized(items[0].BestFriend));
+                Assert.IsTrue(NHibernateUtil.IsInitialized(items[0].CurrentOwnedVehicles));
+            }
+        }
+
+        [TestMethod]
+        public async Task future_long_count_async()
+        {
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles)
+                    .Where(o => o.Name == "Petra");
+
+                var futureCount = query.ToFutureValue(o => o.LongCount());
+                var items = await query.ToListAsync();
+
+                Assert.AreEqual(1, await futureCount.GetValueAsync());
+                Assert.AreEqual(1, items.Count);
+                Assert.IsTrue(NHibernateUtil.IsInitialized(items[0].BestFriend));
+                Assert.IsTrue(NHibernateUtil.IsInitialized(items[0].CurrentOwnedVehicles));
+            }
+        }
+
+        [TestMethod]
         public void using_skip_and_take()
         {
             /*NHibernate way*/

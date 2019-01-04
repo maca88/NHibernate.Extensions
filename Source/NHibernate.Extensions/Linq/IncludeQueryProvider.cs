@@ -223,6 +223,12 @@ namespace NHibernate.Extensions.Linq
         {
             var resultVisitor = new IncludeRewriterVisitor();
             expression = resultVisitor.Modify(expression);
+
+            if (resultVisitor.Count)
+            {
+                return _queryProvider.ExecuteFutureValue<TResult>(expression);
+            }
+
             if (resultVisitor.SkipTake)
             {
                 expression = RemoveSkipAndTake(expression);
