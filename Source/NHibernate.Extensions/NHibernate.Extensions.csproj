@@ -9,7 +9,7 @@
     <Company />
     <Copyright>Copyright © 2018</Copyright>
     <PackageId>NHibernate.Extensions</PackageId>
-    <PackageLicenseUrl>https://github.com/maca88/NHibernate.Extensions/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/maca88/NHibernate.Extensions</PackageProjectUrl>
     <RepositoryUrl>https://github.com/maca88/NHibernate.Extensions</RepositoryUrl>
     <Description>Various additions for NHibernate like the Include method from EntityFramework</Description>
