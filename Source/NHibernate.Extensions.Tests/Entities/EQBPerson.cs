@@ -76,6 +76,7 @@ namespace NHibernate.Extensions.Tests.Entities
             mapping.HasManyToMany(o => o.PreviouslyOwnedVehicles);
             mapping.HasManyToMany(o => o.OwnedHouses);
             mapping.References(o => o.CreatedBy).Class<EQBUser>();
+            mapping.Map(o => o.LastName).LazyLoad();
         }
     }
 }

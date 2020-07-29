@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NHibernate.Engine;
 using NHibernate.Extensions.Internal;
+using NHibernate.Impl;
 using NHibernate.Linq;
 using NHibernate.Metadata;
 using NHibernate.Persister.Collection;
@@ -207,6 +208,7 @@ namespace NHibernate.Extensions.Linq
             return (TResult)Execute(expression);
         }
 
+        [Obsolete("Replaced by ISupportFutureBatchNhQueryProvider interface")]
         public IFutureEnumerable<TResult> ExecuteFuture<TResult>(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
@@ -219,6 +221,7 @@ namespace NHibernate.Extensions.Linq
             return ExecuteQueryTreeFuture<TResult>(expression);
         }
 
+        [Obsolete("Replaced by ISupportFutureBatchNhQueryProvider interface")]
         public IFutureValue<TResult> ExecuteFutureValue<TResult>(Expression expression)
         {
             var resultVisitor = new IncludeRewriterVisitor();
@@ -292,30 +295,37 @@ namespace NHibernate.Extensions.Linq
         private IFutureEnumerable<T> ExecuteQueryTreeFuture<T>(Expression queryExpression)
         {
             IFutureEnumerable<T> result = null;
-            var i = 0;
             foreach (var expression in GetExpressions(queryExpression))
             {
-                if (i == 0)
-                    result = _queryProvider.ExecuteFuture<T>(expression);
+                if (result == null)
+                {
+                    result = new NhQueryable<T>(_queryProvider, expression).ToFuture();
+                }
                 else
-                    _queryProvider.ExecuteFuture<T>(expression);
-                i++;
+                {
+                    new NhQueryable<T>(_queryProvider, expression).ToFuture();
+                }
             }
+
             return result;
         }
 
+        [Obsolete("Replaced by ISupportFutureBatchNhQueryProvider interface")]
         private IFutureValue<T> ExecuteQueryTreeFutureValue<T>(Expression queryExpression)
         {
             IFutureValue<T> result = null;
-            var i = 0;
             foreach (var expression in GetExpressions(queryExpression))
             {
-                if (i == 0)
+                if (result == null)
+                {
                     result = _queryProvider.ExecuteFutureValue<T>(expression);
+                }
                 else
+                {
                     _queryProvider.ExecuteFuture<T>(expression);
-                i++;
+                }
             }
+
             return result;
         }
 

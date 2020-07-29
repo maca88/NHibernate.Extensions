@@ -21,6 +21,7 @@ namespace NHibernate.Extensions.Tests
             {
                 petra = session.Query<EQBPerson>()
                     .First(o => o.Name == "Petra");
+                NHibernateUtil.Initialize(petra.LastName);
                 clone = session.DeepClone(petra, o => o
                     .ForType<EQBPerson>(t => 
                         t.ForMember(m => m.Name, opts => opts.Ignore())
@@ -28,7 +29,6 @@ namespace NHibernate.Extensions.Tests
                 // Lazy load some relations after cloning
                 var friend = petra.BestFriend;
                 var card = petra.IdentityCard;
-
             }
             Assert.AreEqual(petra.Id, clone.Id);
             Assert.AreEqual(null, clone.Name);

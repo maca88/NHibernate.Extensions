@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NHibernate.Transaction;
 
 namespace NHibernate.Extensions
 {
-    internal class TransactionListener : ISynchronization
+    internal class TransactionListener : ITransactionCompletionSynchronization
     {
         private readonly ISession _session;
         private readonly Action<ISession> _beforeCommit;
@@ -28,6 +26,28 @@ namespace NHibernate.Extensions
         public void AfterCompletion(bool success)
         {
             _afterCommit?.Invoke(_session, success);
+        }
+
+        public void ExecuteBeforeTransactionCompletion()
+        {
+            _beforeCommit?.Invoke(_session);
+        }
+
+        public Task ExecuteBeforeTransactionCompletionAsync(CancellationToken cancellationToken)
+        {
+            _beforeCommit?.Invoke(_session);
+            return Task.CompletedTask;
+        }
+
+        public void ExecuteAfterTransactionCompletion(bool success)
+        {
+            _afterCommit?.Invoke(_session, success);
+        }
+
+        public Task ExecuteAfterTransactionCompletionAsync(bool success, CancellationToken cancellationToken)
+        {
+            _afterCommit?.Invoke(_session, success);
+            return Task.CompletedTask;
         }
     }
 }

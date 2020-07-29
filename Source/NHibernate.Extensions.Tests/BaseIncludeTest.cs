@@ -56,10 +56,10 @@ namespace NHibernate.Extensions.Tests
         protected void FillData()
         {
             var system = new EQBUser { UserName = "System" };
-            var ana = new EQBPerson { Age = 23, Name = "Ana", CreatedBy = system };
-            var rok = new EQBPerson { Age = 24, Name = "Rok", CreatedBy = system };
-            var simon = new EQBPerson { Age = 25, Name = "Simon", CreatedBy = system };
-            var petra = new EQBPerson { Age = 22, Name = "Petra", CreatedBy = system };
+            var ana = new EQBPerson { Age = 23, Name = "Ana", LastName = "Frank", CreatedBy = system };
+            var rok = new EQBPerson { Age = 24, Name = "Rok", LastName = "Sinatra", CreatedBy = system };
+            var simon = new EQBPerson { Age = 25, Name = "Simon", LastName = "Peterson", CreatedBy = system };
+            var petra = new EQBPerson { Age = 22, Name = "Petra", LastName = "Stacy", CreatedBy = system };
 
             //Setting best friends
             petra.BestFriend = ana;

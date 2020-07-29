@@ -25,14 +25,14 @@ namespace NHibernate.Extensions.Tests
                     .BeforeCommit(s =>
                     {
                         Assert.AreEqual(session, s);
-                        Assert.IsTrue(s.Transaction.IsActive);
+                        Assert.IsTrue(s.GetCurrentTransaction().IsActive);
                         beforeCommitExecuted = true;
                     })
                     .AfterCommit((s, success) =>
                     {
                         Assert.IsTrue(success);
                         Assert.AreEqual(session, s);
-                        Assert.IsFalse(s.Transaction.IsActive);
+                        Assert.IsFalse(s.GetCurrentTransaction().IsActive);
                         afterCommitExecuted = true;
                     }));
 
@@ -58,14 +58,14 @@ namespace NHibernate.Extensions.Tests
                     .BeforeCommit(s =>
                     {
                         Assert.AreEqual(session, s);
-                        Assert.IsTrue(s.Transaction.IsActive);
+                        Assert.IsTrue(s.GetCurrentTransaction().IsActive);
                         beforeCommitExecuted = true;
                     })
                     .AfterCommit((s, success) =>
                     {
                         Assert.IsFalse(success);
                         Assert.AreEqual(session, s);
-                        Assert.IsFalse(s.Transaction.IsActive);
+                        Assert.IsFalse(s.GetCurrentTransaction().IsActive);
                         afterCommitExecuted = true;
                     }));
 

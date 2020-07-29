@@ -25,27 +25,31 @@ namespace NHibernate.Extensions.Internal
         /// </summary>
         public static System.Type GetUnproxiedType(this object persistentObject)
         {
-            var proxy = persistentObject as INHibernateProxy;
-            if (proxy != null)
-                return proxy.HibernateLazyInitializer.PersistentClass;
-
-            var nhProxy = persistentObject as IProxy;
-            if (nhProxy == null)
-                return persistentObject.GetType();
-
-            var lazyInitializer = nhProxy.Interceptor as ILazyInitializer;
-            if (lazyInitializer != null)
-                return lazyInitializer.PersistentClass;
-
-            var fieldInterceptorAccessor = nhProxy.Interceptor as IFieldInterceptorAccessor;
-            if (fieldInterceptorAccessor != null)
+            switch (persistentObject)
             {
-                return fieldInterceptorAccessor.FieldInterceptor == null
-                    ? nhProxy.GetType().BaseType
-                    : fieldInterceptorAccessor.FieldInterceptor.MappedClass;
+                case INHibernateProxy nhibernateProxy:
+                    return nhibernateProxy.HibernateLazyInitializer.PersistentClass;
+                case IFieldInterceptorAccessor fieldInterceptor:
+                    return fieldInterceptor.FieldInterceptor == null
+                        ? fieldInterceptor.GetType().BaseType
+                        : fieldInterceptor.FieldInterceptor.MappedClass;
+#pragma warning disable 618
+                case IProxy proxy: // Deprecated it in NH 5.2
+#pragma warning restore 618
+                    switch (proxy.Interceptor)
+                    {
+                        case ILazyInitializer lazyInitializer:
+                            return lazyInitializer.PersistentClass;
+                        case IFieldInterceptorAccessor fieldInterceptorAccessor:
+                            return fieldInterceptorAccessor.FieldInterceptor == null
+                                ? fieldInterceptorAccessor.GetType().BaseType
+                                : fieldInterceptorAccessor.FieldInterceptor.MappedClass;
+                        default:
+                            return persistentObject.GetType();
+                    }
+                default:
+                    return persistentObject.GetType();
             }
-
-            return persistentObject.GetType();
         }
 	}
 }

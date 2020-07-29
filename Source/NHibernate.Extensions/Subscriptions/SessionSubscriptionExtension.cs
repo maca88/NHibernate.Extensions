@@ -13,13 +13,11 @@ namespace NHibernate.Extensions
         {
             var config = new SessionSubscription();
             configure(config);
-            var transConfig = config.Transaction as TransactionSubscription;
-            if (transConfig != null && (transConfig.AfterCommitAction != null || transConfig.BeforeCommitAction != null))
+            if (config.Transaction is TransactionSubscription transConfig && (transConfig.AfterCommitAction != null || transConfig.BeforeCommitAction != null))
             {
-                session.Transaction.RegisterSynchronization(new TransactionListener(session,
+                session.GetCurrentTransaction().RegisterSynchronization(new TransactionListener(session,
                     transConfig.BeforeCommitAction, transConfig.AfterCommitAction));
             }
         }
-
     }
 }
