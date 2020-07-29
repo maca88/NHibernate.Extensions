@@ -10,6 +10,7 @@ using NHibernate.Impl;
 using NHibernate.Persister.Entity;
 using NHibernate.Proxy;
 using NHibernate.Type;
+using NHibernate.Util;
 
 namespace NHibernate.Extensions
 {
@@ -201,9 +202,9 @@ namespace NHibernate.Extensions
             IDictionary<object, object> resolvedEntities, DeepCloneParentEntity parentEntity = null)
         {
             opts = opts ?? new DeepCloneOptions();
-            if (entity == null)
+            if (entity == null || !NHibernateUtil.IsInitialized(entity))
                 return entityType.GetDefaultValue();
-            entityType = entityType ?? entity.GetUnproxiedType();
+            entityType = entityType ?? entity.GetUnproxiedType(true);
 
             if (entityType.IsSimpleType())
                 return entity;
@@ -218,9 +219,6 @@ namespace NHibernate.Extensions
                 return entityType.GetDefaultValue();
             }
 
-            if (!NHibernateUtil.IsInitialized(entity))
-                return entityType.GetDefaultValue();
-
             if (resolvedEntities.ContainsKey(entity) && parentEntity != null)
                 return CopyOnlyForeignKeyProperties(resolvedEntities[entity], entityType, entityMetadata, opts, parentEntity);
 
@@ -231,7 +229,7 @@ namespace NHibernate.Extensions
                 return entity;
 
             var propertyInfos = entityType.GetProperties();
-            var copiedEntity = Activator.CreateInstance(entityType);
+            var copiedEntity = ReflectHelper.GetDefaultConstructor(entityType).Invoke(new object[0]);
             resolvedEntities.Add(entity, copiedEntity);
 
             foreach (var propertyInfo in propertyInfos
@@ -293,7 +291,7 @@ namespace NHibernate.Extensions
                     propertyInfo.SetValue(copiedEntity, propertyList, null);
                     AddItemToCollection(propertyList, propertyValue, o => copyAsReference
                         ? o
-                        : session.DeepClone(o, opts, o.GetUnproxiedType(), resolvedEntities,
+                        : session.DeepClone(o, opts, null, resolvedEntities,
                             new DeepCloneParentEntity
                             {
                                 Entity = copiedEntity,

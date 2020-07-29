@@ -23,29 +23,26 @@ namespace NHibernate.Extensions.Internal
         /// <summary>
         /// Gets the underlying class type of a persistent object that may be proxied
         /// </summary>
-        public static System.Type GetUnproxiedType(this object persistentObject)
+        public static System.Type GetUnproxiedType(this object entity, bool allowInitialization)
         {
-            var proxy = persistentObject as INHibernateProxy;
-            if (proxy != null)
-                return proxy.HibernateLazyInitializer.PersistentClass;
-
-            var nhProxy = persistentObject as IProxy;
-            if (nhProxy == null)
-                return persistentObject.GetType();
-
-            var lazyInitializer = nhProxy.Interceptor as ILazyInitializer;
-            if (lazyInitializer != null)
-                return lazyInitializer.PersistentClass;
-
-            var fieldInterceptorAccessor = nhProxy.Interceptor as IFieldInterceptorAccessor;
-            if (fieldInterceptorAccessor != null)
+            if (entity is INHibernateProxy nhProxy)
             {
-                return fieldInterceptorAccessor.FieldInterceptor == null
-                    ? nhProxy.GetType().BaseType
-                    : fieldInterceptorAccessor.FieldInterceptor.MappedClass;
+                if (nhProxy.HibernateLazyInitializer.IsUninitialized && !allowInitialization)
+                {
+                    return nhProxy.HibernateLazyInitializer.PersistentClass;
+                }
+
+                // We have to initialize in case of a subclass to get the concrete type
+                entity = nhProxy.HibernateLazyInitializer.GetImplementation();
             }
 
-            return persistentObject.GetType();
+            switch (entity)
+            {
+                case IFieldInterceptorAccessor interceptorAccessor:
+                    return interceptorAccessor.FieldInterceptor.MappedClass;
+                default:
+                    return entity.GetType();
+            }
         }
 	}
 }

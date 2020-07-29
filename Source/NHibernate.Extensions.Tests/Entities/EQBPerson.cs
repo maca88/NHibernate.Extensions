@@ -15,7 +15,12 @@ namespace NHibernate.Extensions.Tests.Entities
 
     public partial class EQBPerson : Entity, IPerson
     {
-        public EQBPerson()
+        public EQBPerson(string name) : this()
+        {
+            Name = name;
+        }
+
+        protected EQBPerson()
         {
             CurrentOwnedVehicles = new HashSet<EQBVehicle>();
             OwnedHouses = new HashSet<EQBHouse>();
