@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace NHibernate.Extensions
 {
@@ -17,6 +19,9 @@ namespace NHibernate.Extensions
         IBatchFetchBuilder<TEntity, TKey, T> Select<T>(Expression<Func<TEntity, T>> selectExpr);
 
         List<TEntity> Execute();
+
+
+        Task<List<TEntity>> ExecuteAsync(CancellationToken cancellationToken = default);
     }
 
     public interface IBatchFetchBuilder<TEntity, TKey, TResult>
@@ -24,5 +29,7 @@ namespace NHibernate.Extensions
         IBatchFetchBuilder<TEntity, TKey, TResult> BeforeQueryExecution(Func<IQueryable<TEntity>, IQueryable<TEntity>> queryFunc);
 
         List<TResult> Execute();
+
+        Task<List<TEntity>> ExecuteAsync(CancellationToken cancellationToken = default);
     }
 }
