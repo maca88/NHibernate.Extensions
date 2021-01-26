@@ -1,0 +1,51 @@
+﻿projects:
+- filePath: Source/NHibernate.Extensions/NHibernate.Extensions.csproj
+  targetFramework: net461
+  concurrentRun: false
+  applyChanges: true
+  analyzation:
+    methodConversion:
+    - conversion: ToAsync
+      containingTypeName: IBatchFetchBuilder
+      name: Execute
+    - conversion: Smart
+      name: LoadEntity
+    callForwarding: true
+    cancellationTokens:
+      guards: true
+      methodParameter:
+      - parameter: Optional
+    scanMethodBody: true
+    searchAsyncCounterpartsInInheritedTypes: true
+    scanForMissingAsyncMembers:
+    - all: true
+  transformation:
+    configureAwaitArgument: false
+    localFunctions: true
+  registerPlugin:
+  - type: AsyncGenerator.Core.Plugins.EmptyRegionRemover
+    assemblyName: AsyncGenerator.Core
+- filePath: Source/NHibernate.Extensions.Tests/NHibernate.Extensions.Tests.csproj
+  targetFramework: net461
+  concurrentRun: false
+  applyChanges: true
+  analyzation:
+    methodConversion:
+    - conversion: Ignore
+      name: FillData
+    cancellationTokens:
+      enabled: true
+    exceptionHandling:
+      catchMethodBody:
+      - all: true
+        result: false
+    scanMethodBody: true
+    searchAsyncCounterpartsInInheritedTypes: true
+    scanForMissingAsyncMembers:
+    - all: true
+  registerPlugin:
+  - type: AsyncGenerator.Core.Plugins.NUnitPlugin
+    parameters:
+    - name: createNewTypes
+      value: false
+    assemblyName: AsyncGenerator.Core

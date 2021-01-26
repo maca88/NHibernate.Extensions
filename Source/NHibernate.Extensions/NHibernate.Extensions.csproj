@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
     <LangVersion>7.2</LangVersion>
     <Version>2.1.2.0</Version>
     <FileVersion>2.1.2.0</FileVersion>
@@ -9,6 +9,7 @@
     <Company />
     <Copyright>Copyright © 2018</Copyright>
     <PackageId>NHibernate.Extensions</PackageId>
+    <ImplicitlyExpandNETStandardFacades>false</ImplicitlyExpandNETStandardFacades>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/maca88/NHibernate.Extensions</PackageProjectUrl>
     <RepositoryUrl>https://github.com/maca88/NHibernate.Extensions</RepositoryUrl>

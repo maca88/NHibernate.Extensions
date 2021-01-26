@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +25,7 @@ namespace NHibernate.Extensions
         }
     }
 
-    public class BatchFetchBuilder<TEntity, TKey> : IBatchFetchBuilder<TEntity, TKey>
+    public partial class BatchFetchBuilder<TEntity, TKey> : IBatchFetchBuilder<TEntity, TKey>
     {
         protected readonly ISession Session;
         protected readonly ICollection<TKey> Keys;
@@ -65,11 +64,6 @@ namespace NHibernate.Extensions
             return Execute(q => q);
         }
 
-        public virtual Task<List<TEntity>> ExecuteAsync(CancellationToken cancellationToken = default)
-        {
-            return ExecuteAsync(q => q, cancellationToken);
-        }
-
         protected List<T> Execute<T>(Func<IQueryable<TEntity>, IQueryable<T>> convertQuery)
         {
             var parameter = KeyExpresion.Parameters[0];
@@ -92,48 +86,26 @@ namespace NHibernate.Extensions
                     query = BeforeQueryExecutionFunction(query);
                 }
 
-                result.AddRange(convertQuery(query).ToArray());
+                result.AddRange(ToList(convertQuery(query)));
                 currIndex += batchNum;
             }
 
             return result;
         }
 
-
-
-        protected async Task<List<T>> ExecuteAsync<T>(Func<IQueryable<TEntity>, IQueryable<T>> convertQuery, CancellationToken cancellationToken = default)
+        private List<T> ToList<T>(IQueryable<T> query)
         {
-            var parameter = KeyExpresion.Parameters[0];
-            var method = BatchFetchExtension.ContainsMethodInfo.MakeGenericMethod(typeof(TKey));
-            var result = new List<T>();
-            var currIndex = 0;
-            var itemsCount = Keys.Count;
-            while (currIndex < itemsCount)
-            {
-                var batchNum = Math.Min(BatchSize, itemsCount - currIndex);
-                var batchItems = Keys.Skip(currIndex).Take(batchNum).ToList();
-                var value = Expression.Constant(batchItems, typeof(IEnumerable<TKey>));
-                var containsMethod = Expression.Call(method, value, KeyExpresion.Body);
-                var predicate = Expression.Lambda<Func<TEntity, bool>>(containsMethod, parameter);
-                var query = Session.Query<TEntity>()
-                    .Where(predicate);
+            return query.ToList();
+        }
 
-                if (BeforeQueryExecutionFunction != null)
-                {
-                    query = BeforeQueryExecutionFunction(query);
-                }
-
-                var results = await convertQuery(query).ToListAsync(cancellationToken).ConfigureAwait(false);
-                result.AddRange(results);
-                currIndex += batchNum;
-            }
-
-            return result;
+        private Task<List<T>> ToListAsync<T>(IQueryable<T> query, CancellationToken cancellationToken)
+        {
+            return query.ToListAsync(cancellationToken);
         }
     }
 
 
-    public class BatchFetchBuilder<TEntity, TKey, TResult> : BatchFetchBuilder<TEntity, TKey>, IBatchFetchBuilder<TEntity, TKey, TResult>
+    public partial class BatchFetchBuilder<TEntity, TKey, TResult> : BatchFetchBuilder<TEntity, TKey>, IBatchFetchBuilder<TEntity, TKey, TResult>
     {
         public BatchFetchBuilder(ISession session, ICollection<TKey> keys, Expression<Func<TEntity, TKey>> keyExpresion, int batchSize,
             Expression<Func<TEntity, TResult>> selectExpression)
@@ -158,12 +130,5 @@ namespace NHibernate.Extensions
         {
             return Execute(q => q.Select(SelectExpression));
         }
-
-        public new Task<List<TResult>> ExecuteAsync<T>(Func<IQueryable<TEntity>, IQueryable<T>> convertQuery, CancellationToken cancellationToken = default)
-        {
-            return ExecuteAsync(convertQuery, cancellationToken);
-        }
-
-
     }
 }

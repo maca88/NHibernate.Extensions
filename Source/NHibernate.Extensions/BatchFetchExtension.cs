@@ -4,13 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using NHibernate.Linq;
 
 namespace NHibernate.Extensions
 {
-    public static class BatchFetchExtension
+    public static partial class BatchFetchExtension
     {
         internal static readonly MethodInfo ContainsMethodInfo;
 
@@ -52,40 +49,6 @@ namespace NHibernate.Extensions
                 .SetKeys(keys, propertyExpr)
                 .BeforeQueryExecution(queryFunc)
                 .Execute();
-        }
-
-        /// <summary>
-        /// Batch fetching a collecion of keys by using ISession Linq provider
-        /// </summary>
-        /// <typeparam name="TEntity"></typeparam>
-        /// <typeparam name="TProperty"></typeparam>
-        /// <param name="session">NHibernate session</param>
-        /// <param name="keys">Collection of keys that will be retrieved from the database</param>
-        /// <param name="propertyExpr">Expression pointing to the property that represents the key</param>
-        /// <param name="batchSize">Number of records that will be retrieved within one execution</param>
-        /// <param name="queryFunc">Function to modify the query prior execution</param>
-        /// <param name="cancellationToken">CancellationToken to cancel the operation</param>
-        /// <returns>The fetched entites.</returns>
-        public static Task<List<TEntity>> BatchFetchAsync<TEntity, TProperty>(this ISession session, ICollection<TProperty> keys,
-            Expression<Func<TEntity, TProperty>> propertyExpr,
-            int batchSize,
-            Func<IQueryable<TEntity>, IQueryable<TEntity>> queryFunc = null,
-            CancellationToken cancellationToken = default)
-        {
-            if (propertyExpr == null)
-            {
-                throw new ArgumentNullException(nameof(propertyExpr));
-            }
-
-            if (keys == null)
-            {
-                throw new ArgumentNullException(nameof(keys));
-            }
-
-            return session.BatchFetch<TEntity>(batchSize)
-                .SetKeys(keys, propertyExpr)
-                .BeforeQueryExecution(queryFunc)
-                .ExecuteAsync(cancellationToken);
         }
 
         /// <summary>
