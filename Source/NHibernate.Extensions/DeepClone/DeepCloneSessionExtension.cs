@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NHibernate.Collection;
 using NHibernate.Engine;
 using NHibernate.Extensions.Internal;
@@ -78,13 +77,14 @@ namespace NHibernate.Extensions
 
         public static IEnumerable DeepClone(this ISession session, IEnumerable entities, DeepCloneOptions opts)
         {
-            var collection = (IEnumerable) CreateNewCollection(entities.GetType(), out var addMethod);
+            var collection = (dynamic) CreateNewCollection(entities.GetType());
             var resolvedEntities = new Dictionary<object, object>();
             foreach (var entity in entities)
             {
                 var item = DeepClone(session.GetSessionImplementation(), entity, opts, null, resolvedEntities, null);
-                addMethod.Invoke(collection, new[] {item});
+                collection.Add((dynamic) item);
             }
+
             return collection;
         }
 
@@ -149,13 +149,14 @@ namespace NHibernate.Extensions
 
         public static IEnumerable DeepClone(this IStatelessSession session, IEnumerable entities, DeepCloneOptions opts)
         {
-            var collection = (IEnumerable) CreateNewCollection(entities.GetType(), out var addMethod);
+            var collection = (dynamic) CreateNewCollection(entities.GetType());
             var resolvedEntities = new Dictionary<object, object>();
             foreach (var entity in entities)
             {
                 var item = DeepClone(session.GetSessionImplementation(), entity, opts, null, resolvedEntities, null);
-                addMethod.Invoke(collection, new[] {item});
+                collection.Add((dynamic) item);
             }
+
             return collection;
         }
 
@@ -166,115 +167,257 @@ namespace NHibernate.Extensions
         {
             opts = opts ?? new DeepCloneOptions();
             if (entity == null || !NHibernateUtil.IsInitialized(entity))
-                return entityType.GetDefaultValue();
+            {
+                return entityType?.GetDefaultValue();
+            }
+
             entityType = entityType ?? entity.GetUnproxiedType(true);
-
             if (entityType.IsSimpleType())
-                return entity;
-
-            AbstractEntityPersister entityMetadata;
-            try
             {
-                entityMetadata = (AbstractEntityPersister)session.Factory.GetClassMetadata(entityType);
+                return entity;
             }
-            catch (Exception)
+
+            if (!(session.Factory.GetClassMetadata(entityType) is AbstractEntityPersister entityPersister))
             {
                 return entityType.GetDefaultValue();
             }
-
-            if (resolvedEntities.ContainsKey(entity) && parentEntity != null)
-                return CopyOnlyForeignKeyProperties(resolvedEntities[entity], entityType, entityMetadata, opts, parentEntity);
 
             if (resolvedEntities.ContainsKey(entity))
-                return resolvedEntities[entity];
+            {
+                return parentEntity != null
+                    ? CopyOnlyForeignKeyProperties(resolvedEntities[entity], entityType, entityPersister, opts, parentEntity)
+                    : resolvedEntities[entity];
+            }
 
             if (opts.CanCloneAsReferenceFunc != null && opts.CanCloneAsReferenceFunc(entityType))
-                return entity;
-
-            var propertyInfos = entityType.GetProperties();
-            var copiedEntity = ReflectHelper.GetDefaultConstructor(entityType).Invoke(new object[0]);
-            resolvedEntities.Add(entity, copiedEntity);
-
-            foreach (var propertyInfo in propertyInfos
-                .Where(p => opts.CanCloneIdentifier(entityType) || entityMetadata.IdentifierPropertyName != p.Name)
-                .Where(p => !opts.GetIgnoreMembers(entityType).Contains(p.Name))
-                .Where(p => p.GetSetMethod(true) != null))
             {
-                IType propertyType;
-                try
-                {
-                    propertyType = entityMetadata.GetPropertyType(propertyInfo.Name);
-                }
-                catch (Exception)
+                return entity;
+            }
+
+            var id = opts.CanCloneIdentifier(entityType)
+                ? CloneIdentifier(session, entityPersister, entity, opts, resolvedEntities)
+                : GetDefaultIdentifier(entityPersister);
+            var clone = entityPersister.Instantiate(id);
+            resolvedEntities.Add(entity, clone);
+
+            var propertyNames = entityPersister.PropertyNames;
+            DeepCloneProperties(
+                session,
+                entity,
+                clone,
+                opts,
+                entityType,
+                resolvedEntities,
+                parentEntity,
+                propertyNames,
+                entityPersister.PropertyTypes,
+                entityPersister.PropertyLaziness,
+                entityPersister.GetPropertyColumnNames,
+                entityPersister.GetPropertyValue,
+                entityPersister.SetPropertyValue
+            );
+
+            return clone;
+        }
+
+        private static void DeepCloneProperties(
+            ISessionImplementor session,
+            object entity,
+            object clone,
+            DeepCloneOptions opts,
+            System.Type entityType,
+            IDictionary<object, object> resolvedEntities,
+            DeepCloneParentEntity parentEntity,
+            string[] propertyNames,
+            IType[] propertyTypes,
+            bool[] propertyLaziness,
+            Func<int, string[]> getPropertyColumnNames,
+            Func<object, int, object> getPropertyValueFunc,
+            Action<object, int, object> setPropertyValueFunc
+            )
+        {
+            for (var i = 0; i < propertyNames.Length; i++)
+            {
+                var propertyName = propertyNames[i];
+                if (opts.GetIgnoreMembers(entityType).Contains(propertyName))
                 {
                     continue;
                 }
 
-                var resolveFn = opts.GetResolveFunction(entityType, propertyInfo.Name);
+                var propertyType = propertyTypes[i];
+                var resolveFn = opts.GetResolveFunction(entityType, propertyName);
                 if (resolveFn != null)
                 {
-                    propertyInfo.SetValue(copiedEntity, resolveFn(entity), null);
+                    setPropertyValueFunc(clone, i, resolveFn(entity));
                     continue;
                 }
 
-                if (propertyType.IsEntityType && opts.SkipEntityTypesValue.HasValue && opts.SkipEntityTypesValue.Value)
+                if (propertyType.IsEntityType && opts.SkipEntityTypesValue == true)
+                {
                     continue;
+                }
 
-                //TODO: verify: false only when entity is a proxy or lazy field/property that is not yet initialized
-                if (!NHibernateUtil.IsPropertyInitialized(entity, propertyInfo.Name))
+                var isLazy = propertyLaziness != null && propertyLaziness[i];
+                if (isLazy && !NHibernateUtil.IsPropertyInitialized(entity, propertyName))
+                {
                     continue;
+                }
 
-                var propertyValue = propertyInfo.GetValue(entity, null);
+                var propertyValue = getPropertyValueFunc(entity, i);
                 if (!NHibernateUtil.IsInitialized(propertyValue))
                 {
-                    //Use session load for proxy, works only for references (collections are not supported) 
+                    // Use session load for proxy, works only for references (collections are not supported) 
                     if (
                         propertyValue != null &&
                         propertyValue.IsProxy() &&
                         !(propertyValue is IPersistentCollection) &&
                         opts.UseSessionLoadFunction
-                        )
+                    )
                     {
-                        var lazyInit = ((INHibernateProxy)propertyValue).HibernateLazyInitializer;
-                        propertyInfo.SetValue(copiedEntity, LoadEntity(session, lazyInit.PersistentClass, lazyInit.Identifier), null);
+                        var lazyInit = ((INHibernateProxy) propertyValue).HibernateLazyInitializer;
+                        setPropertyValueFunc(clone, i,
+                            LoadEntity(session, lazyInit.PersistentClass, lazyInit.Identifier));
                     }
+
                     continue;
                 }
 
-                var filterFn = opts.GetFilterFunction(entityType, propertyInfo.Name);
+                var filterFn = opts.GetFilterFunction(entityType, propertyName);
                 if (filterFn != null)
-                    propertyValue = filterFn(propertyValue);
-
-                var colNames = entityMetadata.GetPropertyColumnNames(propertyInfo.Name);
-                var propType = propertyInfo.PropertyType;
-                var cloneAsReference = opts.CanCloneAsReference(entityType, propertyInfo.Name);
-                if (propertyType.IsCollectionType)
                 {
-                    var newCollection = CreateNewCollection(propertyType, out var addMethod);
-                    propertyInfo.SetValue(copiedEntity, newCollection, null);
-                    var colParentEntity = new DeepCloneParentEntity(copiedEntity, entityMetadata, propertyType, ((CollectionType)propertyType).GetReferencedColumns(session.Factory));
-                    CloneCollection(session, opts, colParentEntity, resolvedEntities, newCollection, propertyValue, addMethod, cloneAsReference);
+                    propertyValue = filterFn(propertyValue);
+                }
+
+                var colNames = getPropertyColumnNames(i);
+                var cloneAsReference = opts.CanCloneAsReference(entityType, propertyName);
+                if (propertyType is ComponentType componentType)
+                {
+                    setPropertyValueFunc(clone, i, CloneComponent(session, componentType, propertyValue, clone, getPropertyColumnNames(i), opts, resolvedEntities));
+                }
+                else if (propertyType.IsCollectionType)
+                {
+                    var newCollection = CreateNewCollection(propertyType);
+                    setPropertyValueFunc(clone, i, newCollection);
+                    var colParentEntity = new DeepCloneParentEntity(clone, propertyType, ((CollectionType) propertyType).GetReferencedColumns(session.Factory));
+                    CloneCollection(session, opts, colParentEntity, resolvedEntities, newCollection, propertyValue, cloneAsReference);
                 }
                 else if (propertyType.IsEntityType)
                 {
+                    object value;
                     if (cloneAsReference)
-                        propertyInfo.SetValue(copiedEntity, propertyValue, null);
-                    //Check if we have a parent entity and that is bidirectional related to the current property (one-to-many)
+                    {
+                        value = propertyValue;
+                    }
+                    // Check if we have a parent entity and that is bidirectional related to the current property (one-to-many)
                     else if (parentEntity != null && parentEntity.ReferencedColumns.SequenceEqual(colNames))
-                        propertyInfo.SetValue(copiedEntity, parentEntity.Entity, null);
+                    {
+                        value = parentEntity.Entity;
+                    }
                     else
-                        propertyInfo.SetValue(copiedEntity, session.DeepClone(propertyValue, opts, propType, resolvedEntities), null);
+                    {
+                        value = session.DeepClone(propertyValue, opts, propertyType.ReturnedClass, resolvedEntities);
+                    }
+
+                    setPropertyValueFunc(clone, i, value);
                 }
-                else if (propType.IsSimpleType())
+                else
                 {
-                    //Check if we have a parent entity and that is bidirectional related to the current property (one-to-many)
-                    //we dont want to set FKs to the parent entity as the parent is cloned
+                    // Check if we have a parent entity and that is bidirectional related to the current property (one-to-many)
+                    // we dont want to set FKs to the parent entity as the parent is cloned
                     if (parentEntity != null && parentEntity.ReferencedColumns.Contains(colNames.First()))
+                    {
                         continue;
-                    propertyInfo.SetValue(copiedEntity, propertyValue, null);
+                    }
+
+                    setPropertyValueFunc(clone, i, propertyType.DeepCopy(propertyValue, session.Factory));
                 }
             }
-            return copiedEntity;
+        }
+
+        private static object CloneIdentifier(ISessionImplementor session, AbstractEntityPersister entityPersister, object entity, DeepCloneOptions opts, IDictionary<object, object> resolvedEntities)
+        {
+            var id = entityPersister.GetIdentifier(entity);
+            if (entityPersister.IdentifierType is ComponentType componentType)
+            {
+                return CloneComponent(session, componentType, id, null, entityPersister.IdentifierColumnNames, opts, resolvedEntities);
+            }
+            else
+            {
+                return entityPersister.IdentifierType.DeepCopy(id, session.Factory);
+            }
+        }
+
+        private static object CloneComponent(
+            ISessionImplementor session,
+            ComponentType componentType,
+            object value,
+            object parent,
+            string[] columnNames,
+            DeepCloneOptions opts,
+            IDictionary<object, object> resolvedEntities)
+        {
+            var names = componentType.PropertyNames;
+            var clone = componentType.Instantiate(parent, session);
+
+            DeepCloneProperties(
+                session,
+                value,
+                clone,
+                opts,
+                componentType.ReturnedClass,
+                resolvedEntities,
+                null,
+                componentType.PropertyNames,
+                componentType.Subtypes,
+                null,
+                i => GetComponentPropertyColumnNames(session.Factory, componentType, i, columnNames),
+                componentType.GetPropertyValue,
+                (target, i, targetValue) =>
+                {
+                    var values = componentType.GetPropertyValues(target);
+                    values[i] = targetValue;
+                    componentType.SetPropertyValues(clone, values);
+                }
+            );
+
+            return clone;
+        }
+
+        private static void CloneCollection(
+            ISessionImplementor session,
+            DeepCloneOptions opts,
+            DeepCloneParentEntity parentEntity,
+            IDictionary<object, object> resolvedEntities,
+            dynamic newCollection,
+            object collection,
+            bool cloneAsReference)
+        {
+            if (!(collection is IEnumerable enumerable))
+            {
+                return;
+            }
+
+            var enumerableType = enumerable.GetType();
+            if (enumerableType.IsAssignableToGenericType(typeof(IDictionary<,>)))
+            {
+                foreach (dynamic pair in enumerable)
+                {
+                    var clone = cloneAsReference
+                        ? (object)pair.Value
+                        : session.DeepClone((object)pair.Value, opts, null, resolvedEntities, parentEntity);
+                    newCollection.Add(pair.Key, (dynamic) clone);
+                }
+            }
+            else
+            {
+                foreach (var item in enumerable)
+                {
+                    var clone = cloneAsReference
+                        ? item
+                        : session.DeepClone(item, opts, null, resolvedEntities, parentEntity);
+                    newCollection.Add((dynamic) clone);
+                }
+            }
         }
 
         private static object LoadEntity(ISessionImplementor sessionImpl, System.Type type, object identifier)
@@ -287,82 +430,69 @@ namespace NHibernate.Extensions
             return sessionImpl is ISession session ? session.Load(type, identifier) : null;
         }
 
-        private static void CloneCollection(
-            ISessionImplementor session,
-            DeepCloneOptions opts,
-            DeepCloneParentEntity parentEntity,
-            IDictionary<object, object> resolvedEntities,
-            object newCollection,
-            object collection,
-            MethodInfo addMethod,
-            bool cloneAsReference)
+        private static object GetDefaultIdentifier(AbstractEntityPersister entityPersister)
         {
-            var enumerable = collection as IEnumerable;
-            if (enumerable != null)
+            if (entityPersister.IdentifierType is ComponentType componentType)
             {
-                var enumerableType = enumerable.GetType();
-                if (enumerableType.IsAssignableToGenericType(typeof(IDictionary<,>)))
-                {
-                    foreach (dynamic pair in enumerable)
-                    {
-                        var clone = cloneAsReference
-                            ? (object)pair.Value
-                            : session.DeepClone((object)pair.Value, opts, null, resolvedEntities, parentEntity);
-                        addMethod.Invoke(newCollection, new[] {pair.Key, clone});
-                    }
-                }
-                else
-                {
-                    foreach (var item in enumerable)
-                    {
-                        var clone = cloneAsReference
-                            ? item
-                            : session.DeepClone(item, opts, null, resolvedEntities, parentEntity);
-                        addMethod.Invoke(newCollection, new[] {clone});
-                    }
-                }
+                return componentType.Instantiate();
+            }
+            else
+            {
+                return entityPersister.IdentifierType.ReturnedClass.GetDefaultValue();
             }
         }
 
         private static object CopyOnlyForeignKeyProperties(object entity, System.Type entityType,
             AbstractEntityPersister entityMetadata, DeepCloneOptions opts, DeepCloneParentEntity parentEntity)
         {
-            var propertyInfos = entityType.GetProperties();
-
-            //Copy only Fks
-            foreach (var propertyInfo in propertyInfos
-                .Where(p => opts.CanCloneIdentifier(entityType) || entityMetadata.IdentifierPropertyName != p.Name)
-                .Where(p => !opts.GetIgnoreMembers(entityType).Contains(p.Name))
-                .Where(p => p.GetSetMethod(true) != null))
+            var names = entityMetadata.PropertyNames;
+            for (var i = 0; i < names.Length; i++)
             {
-                IType propertyType;
-                try
-                {
-                    propertyType = entityMetadata.GetPropertyType(propertyInfo.Name);
-                }
-                catch (Exception)
+                var name = names[i];
+                if (opts.GetIgnoreMembers(entityType).Contains(name))
                 {
                     continue;
                 }
-                if (!NHibernateUtil.IsPropertyInitialized(entity, propertyInfo.Name))
-                    continue;
-                var propertyValue = propertyInfo.GetValue(entity, null);
-                if (!NHibernateUtil.IsInitialized(propertyValue))
-                    continue;
 
-                var colNames = entityMetadata.GetPropertyColumnNames(propertyInfo.Name);
-                if (!propertyType.IsEntityType) continue;
-                //Check if we have a parent entity and that is bidirectional related to the current property (one-to-many)
+                var isLazy = entityMetadata.PropertyLaziness[i];
+                if (isLazy && !NHibernateUtil.IsPropertyInitialized(entity, name)) // Avoid lazy load
+                {
+                    continue;
+                }
+
+                var propertyType = entityMetadata.PropertyTypes[i];
+                if (!propertyType.IsEntityType)
+                {
+                    continue;
+                }
+
+                var colNames = entityMetadata.GetPropertyColumnNames(i);
+                // Check if we have a parent entity and that is bidirectional related to the current property (one-to-many)
                 if (parentEntity.ReferencedColumns.SequenceEqual(colNames))
                 {
-                    propertyInfo.SetValue(entity, parentEntity.Entity, null);
+                    entityMetadata.SetPropertyValue(entity, i , parentEntity.Entity);
                 }
             }
+
             return entity;
         }
 
-        //can be an interface
-        private static object CreateNewCollection(System.Type collectionType, out MethodInfo addMethod)
+        private static string[] GetComponentPropertyColumnNames(
+            ISessionFactoryImplementor sessionFactory,
+            IAbstractComponentType componentType,
+            int i,
+            string[] allColumnNames)
+        {
+            var span = componentType.Subtypes[i].GetColumnSpan(sessionFactory);
+            var columnNames = new string[span];
+            var offset = componentType.Subtypes.Take(i).Select(o => o.GetColumnSpan(sessionFactory)).Sum();
+            Array.Copy(allColumnNames, offset, columnNames, 0, span);
+
+            return columnNames;
+        }
+
+        // Can be an interface
+        private static object CreateNewCollection(System.Type collectionType)
         {
             var concreteCollType = GetCollectionImplementation(collectionType);
             if (collectionType.IsGenericType)
@@ -370,11 +500,10 @@ namespace NHibernate.Extensions
                 concreteCollType = concreteCollType.MakeGenericType(collectionType.GetGenericArguments()[0]);
             }
 
-            addMethod = concreteCollType.GetInterfaces().SelectMany(o => o.GetMethods()).First(o => o.Name == "Add");
             return Activator.CreateInstance(concreteCollType);
         }
 
-        private static object CreateNewCollection(IType collectionProperty, out MethodInfo addMethod)
+        private static object CreateNewCollection(IType collectionProperty)
         {
             var concreteCollType = GetCollectionImplementation(collectionProperty);
             if (collectionProperty.ReturnedClass.IsGenericType)
@@ -382,7 +511,6 @@ namespace NHibernate.Extensions
                 concreteCollType = concreteCollType.MakeGenericType(collectionProperty.ReturnedClass.GetGenericArguments());
             }
 
-            addMethod = concreteCollType.GetInterfaces().SelectMany(o => o.GetMethods()).First(o => o.Name == "Add");
             return Activator.CreateInstance(concreteCollType);
         }
 

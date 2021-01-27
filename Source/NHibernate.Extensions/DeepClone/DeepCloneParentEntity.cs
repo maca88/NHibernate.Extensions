@@ -7,19 +7,15 @@ namespace NHibernate.Extensions
     {
         public DeepCloneParentEntity(
             object entity,
-            AbstractEntityPersister entityPersister,
             IType childType,
             string[] referencedColumns)
         {
             Entity = entity;
-            EntityPersister = entityPersister;
             ChildType = childType;
             ReferencedColumns = referencedColumns;
         }
 
         public object Entity { get; }
-
-        public AbstractEntityPersister EntityPersister { get; }
 
         public IType ChildType { get; }
 
