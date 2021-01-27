@@ -10,7 +10,7 @@ namespace NHibernate.Extensions
         IBatchFetchBuilder<TEntity, TKey> SetKeys<TKey>(ICollection<TKey> keys, Expression<Func<TEntity, TKey>> keyExpresion);
     }
 
-    public interface IBatchFetchBuilder<TEntity, TKey>
+    public partial interface IBatchFetchBuilder<TEntity, TKey>
     {
         IBatchFetchBuilder<TEntity, TKey> BeforeQueryExecution(Func<IQueryable<TEntity>, IQueryable<TEntity>> queryFunc);
 
@@ -19,7 +19,7 @@ namespace NHibernate.Extensions
         List<TEntity> Execute();
     }
 
-    public interface IBatchFetchBuilder<TEntity, TKey, TResult>
+    public partial interface IBatchFetchBuilder<TEntity, TKey, TResult>
     {
         IBatchFetchBuilder<TEntity, TKey, TResult> BeforeQueryExecution(Func<IQueryable<TEntity>, IQueryable<TEntity>> queryFunc);
 

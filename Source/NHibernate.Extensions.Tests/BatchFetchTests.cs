@@ -2,19 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Tool.hbm2ddl;
+using NUnit.Framework;
 
 namespace NHibernate.Extensions.Tests
 {
-    [TestClass]
-    public class BatchFetchTests
+    [TestFixture]
+    public partial class BatchFetchTests
     {
-        [TestMethod]
-        public void batch_test_with_string_property()
+        [Test]
+        public void TestStringProperty()
         {
             var keys = new HashSet<string>();
             var r = new Random();
@@ -40,8 +38,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void batch_test_with_int_property()
+        [Test]
+        public void TestIntProperty()
         {
             var keys = new HashSet<int>();
             var r = new Random();
@@ -67,8 +65,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void batch_test_with_filter()
+        [Test]
+        public void TestFilter()
         {
             var keys = Enumerable.Range(1, 600).ToList();
 
@@ -89,8 +87,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void batch_test_select_anonymous_type()
+        [Test]
+        public void TestSelectAnonymousType()
         {
             var keys = Enumerable.Range(1, 600).ToList();
 
@@ -110,8 +108,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void batch_test_select_string()
+        [Test]
+        public void TestSelectString()
         {
             var keys = Enumerable.Range(1, 600).ToList();
 
@@ -131,8 +129,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void batch_performance()
+        [Explicit]
+        public void TestPerformance()
         {
             var keys = Enumerable.Range(1, 5000).ToList();
             var batchSizes = new [] { 250, 1, 10, 50, 100, 250, 500, 1000};
@@ -168,7 +166,7 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestInitialize]
+        [OneTimeSetUp]
         public void Initialize()
         {
             var schema = new SchemaExport(NHConfig.Configuration);
@@ -177,7 +175,7 @@ namespace NHibernate.Extensions.Tests
             FillData();
         }
 
-        [TestCleanup]
+        [OneTimeTearDown]
         public void Cleanup()
         {
             var schema = new SchemaExport(NHConfig.Configuration);

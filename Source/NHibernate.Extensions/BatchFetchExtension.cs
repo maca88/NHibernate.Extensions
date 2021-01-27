@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using NHibernate.Linq;
 
 namespace NHibernate.Extensions
 {
-    public static class BatchFetchExtension
+    public static partial class BatchFetchExtension
     {
         internal static readonly MethodInfo ContainsMethodInfo;
 

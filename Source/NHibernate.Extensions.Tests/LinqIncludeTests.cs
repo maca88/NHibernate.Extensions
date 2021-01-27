@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Linq;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Linq;
 using NHibernate.Stat;
+using NUnit.Framework;
 
 namespace NHibernate.Extensions.Tests
 {
-    [TestClass]
-    public class LinqIncludeTests : BaseIncludeTest
+    [TestFixture]
+    public partial class LinqIncludeTests : BaseIncludeTest
     {
-        [TestMethod]
-        public void immutable()
+        [Test]
+        public void TestImmutable()
         {
             using (var session = NHConfig.OpenSession())
             {
@@ -33,8 +33,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void inheritance()
+        [Test]
+        public void TestInheritance()
         {
             using (var session = NHConfig.OpenSession())
             {
@@ -42,8 +42,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void linq_to_object()
+        [Test]
+        public void TestLinqToObject()
         {
             var person = new List<EQBPerson>()
                 .AsQueryable()
@@ -54,8 +54,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(person);
         }
 
-        [TestMethod]
-        public void linq_to_object_with_include_options()
+        [Test]
+        public void TestLinqToObjectWithIncludeOptions()
         {
             var person = new List<EQBPerson>()
                 .AsQueryable()
@@ -66,8 +66,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(person);
         }
 
-        [TestMethod]
-        public void linq_to_object_with_include_options_non_generic()
+        [Test]
+        public void TestLinqToObjectWithIncludeOptionsNonGeneric()
         {
             IQueryable query = new List<EQBPerson>().AsQueryable();
             var persons = query
@@ -78,8 +78,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(0, persons.Count);
         }
 
-        [TestMethod]
-        public void session_with_options()
+        [Test]
+        public void TestSessionWithOptions()
         {
             using (var session = NHConfig.OpenSession())
             {
@@ -93,8 +93,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void queryable_collection()
+        [Test]
+        public void TestQueryableCollection()
         {
             List<EQBVehicle> vehicles;
             using (var session = NHConfig.OpenSession())
@@ -112,8 +112,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsTrue(NHibernateUtil.IsInitialized(vehicles.First().Wheels.First()));
         }
 
-        [TestMethod]
-        public void future_long_count()
+        [Test]
+        public void TestFutureLongCount()
         {
             using (var session = NHConfig.OpenSession())
             {
@@ -132,8 +132,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public async Task future_long_count_async()
+        [Test]
+        public async Task TestFutureLongCountAsync()
         {
             using (var session = NHConfig.OpenSession())
             {
@@ -152,8 +152,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void using_skip_and_take()
+        [Test]
+        public void TestSkipAndTake()
         {
             /*NHibernate way*/
             using (var session = NHConfig.OpenSession())
@@ -212,8 +212,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public async Task using_skip_and_take_async()
+        [Test]
+        public async Task TestSkipAndTakeAsync()
         {
             using (var session = NHConfig.OpenSession())
             {
@@ -234,8 +234,8 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void collections_with_same_prefix()
+        [Test]
+        public void TestCollectionsWithSamePrefix()
         {
             EQBPerson person;
             using (var session = NHConfig.OpenSession())
@@ -254,8 +254,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(1, person.CurrentOwnedVehicles.Count);
         }
 
-        [TestMethod]
-        public void using_count_method()
+        [Test]
+        public void TestUsingAndCountMethod()
         {
             using (var session = NHConfig.OpenSession())
             {
@@ -278,8 +278,32 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public void using_then_include()
+        [Test]
+        public async Task TestUsingAndCountMethodAsync()
+        {
+            using (var session = NHConfig.OpenSession())
+            {
+                var query = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                    .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                    .Include(o => o.DrivingLicence)
+                    .Include(o => o.IdentityCard)
+                    .Include(o => o.MarriedWith)
+                    .Include(o => o.OwnedHouses)
+                    .Include(o => o.PreviouslyOwnedVehicles);
+
+                var total = await query.CountAsync();
+                Assert.AreEqual(4, total);
+
+                var people = await query.ToListAsync();
+                Assert.AreEqual(4, people.Count);
+            }
+        }
+
+        [Test]
+        public void TestUsingAndThenInclude()
         {
             EQBPerson petra;
 
@@ -307,8 +331,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public void set_maximum_columns_per_query()
+        [Test]
+        public void TestSetMaximumColumnsPerQuery()
         {
             EQBPerson petra;
 
@@ -335,8 +359,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public void set_ignore_included_relation_function()
+        [Test]
+        public void TestSetIgnoreIncludedRelationFunction()
         {
             EQBPerson petra;
 
@@ -353,8 +377,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsFalse(NHibernateUtil.IsInitialized(petra.BestFriend.IdentityCard));
         }
 
-        [TestMethod]
-        public void set_ignore_included_relation_function_global()
+        [Test]
+        public void TestIgnoreIncludedRelationFunction()
         {
             IncludeOptions.Default.IgnoreIncludedRelationFunction = (factory, type) => type.ReturnedClass == typeof(EQBIdentityCard);
             try
@@ -376,95 +400,54 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestMethod]
-        public async Task using_async_count_method()
-        {
-            using (var session = NHConfig.OpenSession())
-            {
-                var query = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles);
-
-                var total = await query.CountAsync();
-                Assert.AreEqual(4, total);
-
-                var people = await query.ToListAsync();
-                Assert.AreEqual(4, people.Count);
-            }
-        }
-
-        [TestMethod]
-        [ExpectedException(typeof (InvalidOperationException))]
-        public void using_single_method_for_retriving_a_person_that_dont_exists()
+        [Test]
+        public void TestSingleForNotExistingPerson()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
             {
-                test = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .Single(o => o.Name == "Test");
+                Assert.Throws<InvalidOperationException>(() =>
+                {
+                    test = session.Query<EQBPerson>()
+                        .Include(o => o.BestFriend.IdentityCard)
+                        .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                        .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                        .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                        .Include(o => o.DrivingLicence)
+                        .Include(o => o.IdentityCard)
+                        .Include(o => o.MarriedWith)
+                        .Include(o => o.OwnedHouses)
+                        .Include(o => o.PreviouslyOwnedVehicles)
+                        .Single(o => o.Name == "Test");
+                });
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof (InvalidOperationException))]
-        public void using_first_method_for_retriving_a_person_that_dont_exists()
+        [Test]
+        public void TestFirstForNotExistingPerson()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
             {
-                test = session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .First(o => o.Name == "Test");
+                Assert.Throws<InvalidOperationException>(() =>
+                {
+                    test = session.Query<EQBPerson>()
+                        .Include(o => o.BestFriend.IdentityCard)
+                        .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
+                        .Include(o => o.CurrentOwnedVehicles.First().Wheels)
+                        .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
+                        .Include(o => o.DrivingLicence)
+                        .Include(o => o.IdentityCard)
+                        .Include(o => o.MarriedWith)
+                        .Include(o => o.OwnedHouses)
+                        .Include(o => o.PreviouslyOwnedVehicles)
+                        .First(o => o.Name == "Test");
+                });
             }
         }
 
-        [TestMethod]
-        [ExpectedException(typeof (InvalidOperationException))]
-        public async Task using_first_async_method_for_retriving_a_person_that_dont_exists()
-        {
-            EQBPerson test;
-            using (var session = NHConfig.OpenSession())
-            {
-                test = await session.Query<EQBPerson>()
-                    .Include(o => o.BestFriend.IdentityCard)
-                    .Include(o => o.BestFriend.BestFriend.BestFriend.BestFriend)
-                    .Include(o => o.CurrentOwnedVehicles.First().Wheels)
-                    .Include(o => o.CurrentOwnedVehicles.First().RoadworthyTests)
-                    .Include(o => o.DrivingLicence)
-                    .Include(o => o.IdentityCard)
-                    .Include(o => o.MarriedWith)
-                    .Include(o => o.OwnedHouses)
-                    .Include(o => o.PreviouslyOwnedVehicles)
-                    .FirstAsync(o => o.Name == "Test");
-            }
-        }
-
-        [TestMethod]
-        public void using_to_future_value_method_without_getting_value()
+        [Test]
+        public void TestToFutureValueWithNull()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
@@ -486,8 +469,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
-        [TestMethod]
-        public async Task using_to_future_value_async_method_without_getting_value()
+        [Test]
+        public async Task TestToFutureValueWithNullAsync()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
@@ -509,8 +492,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
-        [TestMethod]
-        public void using_tofutorevalue_method_for_retriving_a_person_that_dont_exists()
+        [Test]
+        public void TestToFutureValueForNotExistingPerson()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
@@ -531,27 +514,8 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
-        [TestMethod]
-        public void test_selectmany()
-        {
-            /*Without parameter*/
-            using (var session = NHConfig.OpenSession())
-            {
-                var stats = session.SessionFactory.Statistics;
-                stats.Clear();
-                var query = session.Query<EQBIdentityCard>()
-                    .Where(o => o.Code == "SD")
-                    .Fetch(o => o.Owner).ThenFetch(o => o.BestFriend).ThenFetch(o => o.MarriedWith)
-                    //.Select(o => o.Owner)
-                    .ToList();
-
-                Assert.AreEqual(1, stats.PrepareStatementCount);
-            }
-            //Assert.AreEqual("System", petra.CreatedBy.UserName);
-        }
-
-        [TestMethod]
-        public async Task using_tofutorevalue_async_method_for_retriving_a_person_that_dont_exists()
+        [Test]
+        public async Task TestToFutureValueForNotExistingPersonAsync()
         {
             EQBPerson test;
             using (var session = NHConfig.OpenSession())
@@ -572,8 +536,27 @@ namespace NHibernate.Extensions.Tests
             Assert.IsNull(test);
         }
 
-        [TestMethod]
-        public void test_include_with_interface()
+        [Test]
+        public void TestSelectMany()
+        {
+            /*Without parameter*/
+            using (var session = NHConfig.OpenSession())
+            {
+                var stats = session.SessionFactory.Statistics;
+                stats.Clear();
+                var query = session.Query<EQBIdentityCard>()
+                    .Where(o => o.Code == "SD")
+                    .Fetch(o => o.Owner).ThenFetch(o => o.BestFriend).ThenFetch(o => o.MarriedWith)
+                    //.Select(o => o.Owner)
+                    .ToList();
+
+                Assert.AreEqual(1, stats.PrepareStatementCount);
+            }
+            //Assert.AreEqual("System", petra.CreatedBy.UserName);
+        }
+
+        [Test]
+        public void TestIncludeInterface()
         {
             EQBPerson petra;
             /*Without parameter*/
@@ -589,8 +572,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
-        [TestMethod]
-        public void test_cast_to_base_type()
+        [Test]
+        public void TestCastToBaseType()
         {
             IPerson petra;
             /*Without parameter*/
@@ -609,8 +592,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
-        [TestMethod]
-        public async Task test_cast_to_base_type_async()
+        [Test]
+        public async Task TestCastToBaseTypeAsync()
         {
             IPerson petra;
             /*Without parameter*/
@@ -629,8 +612,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual("System", petra.CreatedBy.UserName);
         }
 
-        [TestMethod]
-        public void test_cast_to_base_type_relation()
+        [Test]
+        public void TestCastToBaseTypeRelation()
         {
             IPerson petra;
             /*Without parameter*/
@@ -648,8 +631,8 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual(petra.CurrentOwnedVehicles.Any(), true);
         }
 
-        [TestMethod]
-        public void test_include_with_collection()
+        [Test]
+        public void TestIncludeCollection()
         {
             EQBPerson petra;
             /*Without parameter*/
@@ -666,8 +649,8 @@ namespace NHibernate.Extensions.Tests
 
 #region FutureValue
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_future_value()
+        [Test]
+        public void TestFutureValue()
         {
             EQBPerson petra;
 
@@ -695,8 +678,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_future_value_async()
+        [Test]
+        public async Task TestFutureValueAsync()
         {
             EQBPerson petra;
 
@@ -724,8 +707,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_future_value_expression()
+        [Test]
+        public void TestFutureValueWithExpression()
         {
             EQBPerson petra;
 
@@ -753,8 +736,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_future_value_expression_async()
+        [Test]
+        public async Task TestFutureValueWithExpressionAsync()
         {
             EQBPerson petra;
 
@@ -786,8 +769,8 @@ namespace NHibernate.Extensions.Tests
 
         #region SingleOrDefault
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_single_or_default()
+        [Test]
+        public void TestSingleOrDefault()
         {
             EQBPerson petra;
 
@@ -814,8 +797,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_single_or_default_async()
+        [Test]
+        public async Task TestTestSingleOrDefaultAsync()
         {
             EQBPerson petra;
 
@@ -842,8 +825,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_single_or_default_async_with_parameter()
+        [Test]
+        public async Task TestTestSingleOrDefaultWithCondition()
         {
             EQBPerson petra;
 
@@ -873,8 +856,8 @@ namespace NHibernate.Extensions.Tests
 
 #region Single
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_single()
+        [Test]
+        public void TestSingle()
         {
             EQBPerson petra;
 
@@ -901,8 +884,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_single_async()
+        [Test]
+        public async Task TestSingleAsync()
         {
             EQBPerson petra;
 
@@ -929,8 +912,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_single_async_with_parameter()
+        [Test]
+        public async Task TestSingleWithConditionAsync()
         {
             EQBPerson petra;
 
@@ -956,8 +939,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_single_with_parameter()
+        [Test]
+        public void TestSingleWithCondition()
         {
             EQBPerson petra;
 
@@ -983,12 +966,12 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-#endregion
+        #endregion
 
-#region FirstOrDefault
+        #region FirstOrDefault
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_first_or_default()
+        [Test]
+        public void TestFirstOrDefault()
         {
             EQBPerson petra;
 
@@ -1015,8 +998,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_first_or_default_async()
+        [Test]
+        public async Task TestFirstOrDefaultAsync()
         {
             EQBPerson petra;
 
@@ -1043,8 +1026,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_first_or_default_asnc_with_parameter()
+        [Test]
+        public async Task TestFirstOrDefaultWithConditionAsync()
         {
             EQBPerson petra;
 
@@ -1070,8 +1053,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_first_or_default_with_parameter()
+        [Test]
+        public void TestFirstOrDefaultWithCondition()
         {
             EQBPerson petra;
 
@@ -1101,8 +1084,8 @@ namespace NHibernate.Extensions.Tests
 
 #region First
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_first()
+        [Test]
+        public void TestFirst()
         {
             EQBPerson petra;
 
@@ -1129,8 +1112,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_first_async()
+        [Test]
+        public async Task TestFirstAsync()
         {
             EQBPerson petra;
 
@@ -1157,8 +1140,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public async Task get_single_result_without_skip_or_take_with_first_async_with_parameter()
+        [Test]
+        public async Task TestFirstWithConditionAsync()
         {
             EQBPerson petra;
 
@@ -1184,8 +1167,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_first_with_parameter()
+        [Test]
+        public void TestFirstWithCondition()
         {
             EQBPerson petra;
 
@@ -1215,8 +1198,8 @@ namespace NHibernate.Extensions.Tests
 
 #region LastOrDefault
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_last_or_default()
+        [Test]
+        public void TestLastOrDefault()
         {
             EQBPerson petra;
 
@@ -1243,8 +1226,8 @@ namespace NHibernate.Extensions.Tests
             ValidateGetEntityResult(petra);
         }
 
-        [TestMethod]
-        public void get_single_result_without_skip_or_take_with_last_or_default_with_parameter()
+        [Test]
+        public void TestLastOrDefaultWithCondition()
         {
             EQBPerson petra;
 

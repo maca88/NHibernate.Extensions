@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Engine;
 using NHibernate.Extensions.Tests.Entities;
 using NHibernate.Tool.hbm2ddl;
+using NUnit.Framework;
 
 namespace NHibernate.Extensions.Tests
 {
+    [TestFixture]
     public abstract class BaseIncludeTest
     {
         protected void ValidateGetEntityResult(EQBPerson petra)
@@ -37,7 +38,7 @@ namespace NHibernate.Extensions.Tests
             }
         }
 
-        [TestInitialize]
+        [OneTimeSetUp]
         public void Initialize()
         {
             var schema = new SchemaExport(NHConfig.Configuration);
@@ -46,7 +47,7 @@ namespace NHibernate.Extensions.Tests
             FillData();
         }
 
-        [TestCleanup]
+        [OneTimeTearDown]
         public void Cleanup()
         {
             var schema = new SchemaExport(NHConfig.Configuration);

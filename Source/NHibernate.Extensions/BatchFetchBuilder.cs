@@ -1,8 +1,9 @@
-﻿using System;
+﻿using NHibernate.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace NHibernate.Extensions
@@ -24,7 +25,7 @@ namespace NHibernate.Extensions
         }
     }
 
-    public class BatchFetchBuilder<TEntity, TKey> : IBatchFetchBuilder<TEntity, TKey>
+    public partial class BatchFetchBuilder<TEntity, TKey> : IBatchFetchBuilder<TEntity, TKey>
     {
         protected readonly ISession Session;
         protected readonly ICollection<TKey> Keys;
@@ -85,16 +86,26 @@ namespace NHibernate.Extensions
                     query = BeforeQueryExecutionFunction(query);
                 }
 
-                result.AddRange(convertQuery(query).ToArray());
+                result.AddRange(ToList(convertQuery(query)));
                 currIndex += batchNum;
             }
 
             return result;
         }
+
+        private List<T> ToList<T>(IQueryable<T> query)
+        {
+            return query.ToList();
+        }
+
+        private Task<List<T>> ToListAsync<T>(IQueryable<T> query, CancellationToken cancellationToken)
+        {
+            return query.ToListAsync(cancellationToken);
+        }
     }
 
 
-    public class BatchFetchBuilder<TEntity, TKey, TResult> : BatchFetchBuilder<TEntity, TKey>, IBatchFetchBuilder<TEntity, TKey, TResult>
+    public partial class BatchFetchBuilder<TEntity, TKey, TResult> : BatchFetchBuilder<TEntity, TKey>, IBatchFetchBuilder<TEntity, TKey, TResult>
     {
         public BatchFetchBuilder(ISession session, ICollection<TKey> keys, Expression<Func<TEntity, TKey>> keyExpresion, int batchSize,
             Expression<Func<TEntity, TResult>> selectExpression)
@@ -104,6 +115,8 @@ namespace NHibernate.Extensions
         }
 
         public Expression<Func<TEntity, TResult>> SelectExpression { get; }
+
+
 
         IBatchFetchBuilder<TEntity, TKey, TResult> IBatchFetchBuilder<TEntity, TKey, TResult>.BeforeQueryExecution(Func<IQueryable<TEntity>, IQueryable<TEntity>> queryFunc)
         {

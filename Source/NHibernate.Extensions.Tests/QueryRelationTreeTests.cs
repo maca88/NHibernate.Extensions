@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NHibernate.Extensions.Tests.Entities;
+using NUnit.Framework;
 
 namespace NHibernate.Extensions.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class QueryRelationTreeTests
     {
-        [TestMethod]
+        [Test]
         public void Test1()
         {
             var tree = new QueryRelationTree();
@@ -37,7 +37,7 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual("BestFriend.BestFriend.BestFriend.BestFriend", results[1][3]);
         }
 
-        [TestMethod]
+        [Test]
         public void Test2()
         {
             var tree = new QueryRelationTree();
@@ -69,7 +69,7 @@ namespace NHibernate.Extensions.Tests
             Assert.AreEqual("CurrentOwnedVehicles.RoadworthyTests", results[3][1]);
         }
 
-        [TestMethod]
+        [Test]
         public void Test3()
         {
             var tree = new QueryRelationTree();
