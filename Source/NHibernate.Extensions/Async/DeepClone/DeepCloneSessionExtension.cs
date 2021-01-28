@@ -315,6 +315,12 @@ namespace NHibernate.Extensions
                     : resolvedEntities[entity];
             }
 
+            var entityResolver = opts.EntityResolvers.FirstOrDefault(o => o.CanResolve(entityType, entity));
+            if (entityResolver != null)
+            {
+                return entityResolver.Resolve(entity, entityPersister);
+            }
+
             if (opts.CanCloneAsReferenceFunc != null && opts.CanCloneAsReferenceFunc(entityType))
             {
                 return entity;

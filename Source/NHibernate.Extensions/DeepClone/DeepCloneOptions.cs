@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using NHibernate.Extensions.DeepClone;
+using NHibernate.Extensions.Internal;
+using NHibernate.Persister.Entity;
 
 namespace NHibernate.Extensions
 {
     public class DeepCloneOptions
     {
-        public DeepCloneOptions()
-        {
-            CloneIdentifierValue = true;
-            TypeOptions = new Dictionary<System.Type, DeepCloneTypeOptions>();
-        }
-
-        internal bool CloneIdentifierValue { get; set; }
+        internal bool CloneIdentifierValue { get; set; } = true;
 
         internal bool UseSessionLoadFunction { get; set; }
 
@@ -21,7 +17,9 @@ namespace NHibernate.Extensions
 
         internal Func<System.Type, bool> CanCloneAsReferenceFunc { get; set; }
 
-        internal Dictionary<System.Type, DeepCloneTypeOptions> TypeOptions { get; set; }
+        internal List<IEntityResolver> EntityResolvers { get; } = new List<IEntityResolver>();
+
+        internal Dictionary<System.Type, DeepCloneTypeOptions> TypeOptions { get; } = new Dictionary<System.Type, DeepCloneTypeOptions>();
 
         public DeepCloneOptions CloneIdentifier(bool value)
         {
@@ -44,6 +42,24 @@ namespace NHibernate.Extensions
         public DeepCloneOptions CanCloneAsReference(Func<System.Type, bool> func)
         {
             CanCloneAsReferenceFunc = func;
+            return this;
+        }
+
+        public DeepCloneOptions AddEntityResolver(IEntityResolver resolver)
+        {
+            EntityResolvers.Add(resolver);
+            return this;
+        }
+
+        public DeepCloneOptions AddEntityResolver(Predicate<System.Type> entityTypePredicate, Func<object, AbstractEntityPersister, object> resolver)
+        {
+            EntityResolvers.Add(new DelegateEntityResolver(entityTypePredicate, resolver));
+            return this;
+        }
+
+        public DeepCloneOptions AddEntityResolver(Func<System.Type, object, bool> canResolveFunc, Func<object, AbstractEntityPersister, object> resolver)
+        {
+            EntityResolvers.Add(new DelegateEntityResolver(canResolveFunc, resolver));
             return this;
         }
 

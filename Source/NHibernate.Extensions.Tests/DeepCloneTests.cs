@@ -97,6 +97,59 @@ namespace NHibernate.Extensions.Tests
         }
 
         [Test]
+        public void TestEntityResolver()
+        {
+            EQBPerson clone;
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend)
+                    .First(o => o.Name == "Petra");
+
+                clone = session.DeepClone(petra, o => o
+                    .AddEntityResolver(t => true, (entity, persister) => persister.CreateProxy(persister.GetIdentifier(entity), null)));
+
+                Assert.AreEqual(petra.Id, clone.Id);
+                Assert.False(NHibernateUtil.IsInitialized(clone));
+                Assert.Throws<LazyInitializationException>(() =>
+                {
+                    var friend = clone.BestFriend;
+                });
+            }
+        }
+
+        [Test]
+        public void TestEntityResolverSkipRoot()
+        {
+            EQBPerson clone;
+            EQBPerson petra;
+
+            using (var session = NHConfig.OpenSession())
+            {
+                petra = session.Query<EQBPerson>()
+                    .Include(o => o.BestFriend.IdentityCard)
+                    .Include(o => o.BestFriend.BestFriend)
+                    .First(o => o.Name == "Petra");
+
+                clone = session.DeepClone(petra, o => o
+                    .AddEntityResolver((t, e) => e != petra, (entity, persister) => persister.CreateProxy(persister.GetIdentifier(entity), null)));
+
+                Assert.AreEqual(petra.Id, clone.Id);
+                Assert.AreEqual(petra.Name, clone.Name);
+                Assert.True(NHibernateUtil.IsInitialized(clone));
+
+                Assert.False(NHibernateUtil.IsInitialized(clone.BestFriend));
+                Assert.Throws<LazyInitializationException>(() =>
+                {
+                    var card = clone.BestFriend.IdentityCard;
+                });
+            }
+        }
+
+        [Test]
         public void TestCollections()
         {
             EQBPerson clone;
