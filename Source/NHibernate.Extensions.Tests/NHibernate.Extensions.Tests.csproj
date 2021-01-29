@@ -18,7 +18,7 @@
     <PackageReference Include="NHibernate" Version="5.2.1" />
     <PackageReference Include="Iesi.Collections" Version="4.0.4" />
     <PackageReference Include="FluentNHibernate" Version="2.1.2" />
-    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="log4net" Version="2.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NHibernateProfiler.Appender" Version="5.0.5031" />
