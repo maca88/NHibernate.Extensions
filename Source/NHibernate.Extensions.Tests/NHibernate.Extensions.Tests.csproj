@@ -15,13 +15,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NHibernate" Version="5.2.1" />
+    <PackageReference Include="NHibernate" Version="5.3.5" />
     <PackageReference Include="Iesi.Collections" Version="4.0.4" />
-    <PackageReference Include="FluentNHibernate" Version="2.1.2" />
-    <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
-    <PackageReference Include="nunit" Version="3.12.0" />
-    <PackageReference Include="NHibernateProfiler.Appender" Version="5.0.5031" />
+    <PackageReference Include="FluentNHibernate" Version="3.1.0" />
+    <PackageReference Include="log4net" Version="2.0.12" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    <PackageReference Include="nunit" Version="3.13.0" />
+    <PackageReference Include="NHibernateProfiler.Appender" Version="5.0.5051" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
 
     <ProjectReference Include="..\NHibernate.Extensions\NHibernate.Extensions.csproj" />
   </ItemGroup>

@@ -13,13 +13,14 @@ namespace NHibernate.Extensions
         {
             var config = new SessionSubscription();
             configure(config);
-            var transConfig = config.Transaction as TransactionSubscription;
-            if (transConfig != null && (transConfig.AfterCommitAction != null || transConfig.BeforeCommitAction != null))
-            {
-                session.Transaction.RegisterSynchronization(new TransactionListener(session,
-                    transConfig.BeforeCommitAction, transConfig.AfterCommitAction));
-            }
-        }
 
+            var transaction = session.GetCurrentTransaction();
+            if (transaction == null && config.Transaction.IsSet)
+            {
+                throw new InvalidOperationException("The session has not an active transaction to subscribe the before/after commit actions.");
+            }
+
+            transaction.RegisterSynchronization(new TransactionListener(session, config.Transaction));
+        }
     }
 }

@@ -25,8 +25,8 @@
 
   <ItemGroup>
     <PackageReference Include="Iesi.Collections" Version="4.0.4" />
-    <PackageReference Include="NHibernate" Version="5.1.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+    <PackageReference Include="NHibernate" Version="5.3.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
   </ItemGroup>
 
 </Project>

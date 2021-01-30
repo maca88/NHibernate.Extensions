@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace NHibernate.Extensions
@@ -10,10 +7,19 @@ namespace NHibernate.Extensions
     {
         ITransactionSubscription AfterCommit(Action<ISession, bool> action);
 
+        ITransactionSubscription AfterCommit(Func<ISession, bool, Task> action);
+
         ITransactionSubscription AfterCommit(Action<bool> action);
+
+        ITransactionSubscription AfterCommit(Func<bool, Task> action);
 
         ITransactionSubscription BeforeCommit(Action<ISession> action);
 
+        ITransactionSubscription BeforeCommit(Func<ISession, Task> action);
+
         ITransactionSubscription BeforeCommit(System.Action action);
+
+        ITransactionSubscription BeforeCommit(Func<Task> action);
+
     }
 }

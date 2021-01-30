@@ -107,7 +107,7 @@ namespace NHibernate.Extensions.Tests
                     .ToList();
             }
 
-            Assert.AreEqual(4, vehicles.Count);
+            Assert.AreEqual(1, vehicles.Count);
             Assert.IsTrue(NHibernateUtil.IsInitialized(vehicles.First().Wheels));
             Assert.IsTrue(NHibernateUtil.IsInitialized(vehicles.First().Wheels.First()));
         }

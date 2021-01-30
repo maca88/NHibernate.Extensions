@@ -13,6 +13,8 @@ namespace NHibernate.Extensions
             Transaction = new TransactionSubscription();
         }
 
-        public ITransactionSubscription Transaction { get; }
+        public TransactionSubscription Transaction { get; }
+
+        ITransactionSubscription ISessionSubscription.Transaction => Transaction;
     }
 }

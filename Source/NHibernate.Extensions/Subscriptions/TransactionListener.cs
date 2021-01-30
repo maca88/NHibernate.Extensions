@@ -1,33 +1,65 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using NHibernate.Transaction;
 
 namespace NHibernate.Extensions
 {
-    internal class TransactionListener : ISynchronization
+    internal class TransactionListener : ITransactionCompletionSynchronization
     {
         private readonly ISession _session;
-        private readonly Action<ISession> _beforeCommit;
-        private readonly Action<ISession, bool> _afterCommit;
+        private readonly TransactionSubscription _subscription;
 
-        public TransactionListener(ISession session, Action<ISession> beforeCommit, Action<ISession, bool> afterCommit)
+        public TransactionListener(ISession session, TransactionSubscription subscription)
         {
             _session = session;
-            _beforeCommit = beforeCommit;
-            _afterCommit = afterCommit;
+            _subscription = subscription;
         }
 
-        public void BeforeCompletion()
+        public void ExecuteBeforeTransactionCompletion()
         {
-            _beforeCommit?.Invoke(_session);
+            if (_subscription.BeforeCommitAsyncAction != null)
+            {
+                throw new NotSupportedException("An async before commit action cannot be executed when using ISession.Commit.");
+            }
+
+            _subscription.BeforeCommitAction?.Invoke(_session);
         }
 
-        public void AfterCompletion(bool success)
+        public async Task ExecuteBeforeTransactionCompletionAsync(CancellationToken cancellationToken)
         {
-            _afterCommit?.Invoke(_session, success);
+            var action = _subscription.BeforeCommitAsyncAction;
+            if (action != null)
+            {
+                await action(_session).ConfigureAwait(false);
+            }
+            else
+            {
+                _subscription.BeforeCommitAction?.Invoke(_session);
+            }
+        }
+
+        public void ExecuteAfterTransactionCompletion(bool success)
+        {
+            if (_subscription.AfterCommitAsyncAction != null)
+            {
+                throw new NotSupportedException("An async after commit action cannot be executed when using ISession.Commit.");
+            }
+
+            _subscription.AfterCommitAction?.Invoke(_session, success);
+        }
+
+        public async Task ExecuteAfterTransactionCompletionAsync(bool success, CancellationToken cancellationToken)
+        {
+            var action = _subscription.AfterCommitAsyncAction;
+            if (action != null)
+            {
+                await action(_session, success).ConfigureAwait(false);
+            }
+            else
+            {
+                _subscription.AfterCommitAction?.Invoke(_session, success);
+            }
         }
     }
 }
