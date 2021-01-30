@@ -7,6 +7,12 @@
       "commands": [
         "async-generator"
       ]
+    },
+    "cake.tool": {
+      "version": "1.0.0-rc0003",
+      "commands": [
+        "dotnet-cake"
+      ]
     }
   }
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>7.2</LangVersion>
     <IsPackable>false</IsPackable>
     <Authors>maca88</Authors>
@@ -25,10 +25,6 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
 
     <ProjectReference Include="..\NHibernate.Extensions\NHibernate.Extensions.csproj" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp2.0'">
-    <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
   </ItemGroup>
 
   <ItemGroup>

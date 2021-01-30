@@ -36,8 +36,8 @@ namespace NHibernate.Extensions.Tests
             var modelAssembly = typeof(NHConfig).Assembly;
             var configuration = Configuration = new Configuration();
             configuration.SetProperty(Environment.GenerateStatistics, "true");
-            configuration.SetProperty(Environment.UseSqlComments, "true");
-            configuration.SetProperty(Environment.ShowSql, "true");
+            configuration.SetProperty(Environment.UseSqlComments, "false");
+            configuration.SetProperty(Environment.ShowSql, "false");
             configuration.Configure();  // Configure from the hibernate.cfg.config
 
             // We have to replace |DataDirectory| as it is not supported on .NET Core
