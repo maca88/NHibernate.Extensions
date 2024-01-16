@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="nunit" Version="3.13.0" />
     <PackageReference Include="NHibernateProfiler.Appender" Version="5.0.5051" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
 
     <ProjectReference Include="..\NHibernate.Extensions\NHibernate.Extensions.csproj" />
   </ItemGroup>
